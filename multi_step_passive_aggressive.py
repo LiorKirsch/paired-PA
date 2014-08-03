@@ -11,7 +11,7 @@ import random
 from numpy.linalg import norm
 
 
-def pairedPA_new(X, Y, C, repeat = 5000, seed = 42):
+def pairedPA_one_loss(X, Y, C, repeat = 5000, seed = 42):
     
     random.seed(seed)
     X_pos = X[ Y>0,:]
@@ -66,7 +66,7 @@ def pairedPA_new(X, Y, C, repeat = 5000, seed = 42):
                 w = w - tau_neg *  X_neg[i_neg,:]
             # else: no update is needed 
 
-    return w, P, N
+    return w
 
 def pairedPA_exact(X, Y, C, repeat = 5000, seed = 42, early_stopping = np.Inf):
     

@@ -3,8 +3,6 @@ paired_PA_main
 	- generates random samples and get their labels using w
 	- reverses some of the labels
 	- causes the data to be unbalanced
-	- normalizes the data
-
 
 onlineClassifiers 
 	- contains svm using DCA

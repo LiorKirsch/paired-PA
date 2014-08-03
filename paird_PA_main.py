@@ -126,6 +126,7 @@ if __name__ == '__main__':
             {'alg_func': onlineClassifiers.svm_dual_double_step, 'alg_name':'svm double step','line_properties':'r--','args':{'C':1.0,'repeat':repeat} },
             {'alg_func': multi_step_passive_aggressive.pairedPA_exact, 'alg_name':'PA dual exact','line_properties':'','args':{'C':1.0,'repeat':repeat} },
             {'alg_func': multi_step_passive_aggressive.pairedPA_exact, 'alg_name':'PA sequantial','line_properties':'','args':{'C':1.0,'repeat':repeat,'early_stopping':1} },
+            {'alg_func': multi_step_passive_aggressive.pairedPA_one_loss, 'alg_name':'PA one loss','line_properties':'','args':{'C':1.0,'repeat':repeat} },
             {'alg_func': passive_aggressive_varients.PA, 'alg_name':'PA','line_properties':'b-','args':{'C':1.0,'repeat':repeat} },
             {'alg_func': passive_aggressive_varients.PA_auc, 'alg_name':'PA auc','line_properties':'g--','args':{'C':1.0,'repeat':repeat} },
             {'alg_func': passive_aggressive_varients.pairedPA_projected_constrains, 'alg_name':'PA projected_constrains','line_properties':'','args':{'C_pos':1.0,'C_neg':1.0,'repeat':repeat} },
