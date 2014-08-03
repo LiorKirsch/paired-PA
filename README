@@ -1,0 +1,13 @@
+onlineClassifiers - contains svm using DCA
+		  - DCA where we always update a positive and a negative
+		  - perceptron 
+
+passive_aggressive_varients
+		  - PA
+		  - PA AUC where the input is (x_pos - x_neg)
+		  - PA with project constrains
+
+multi_step_passive_aggressive
+		  - pairedPA_exact where we solve an exact solution for each pair
+		  - dca_with_memory which solves DCA with an memory of a weight vector
+		  - pairedPA_one loss
