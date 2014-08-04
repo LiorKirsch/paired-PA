@@ -1,0 +1,122 @@
+\documentclass[twoside,11pt]{article}
+
+% Any additional packages needed should be included after jmlr2e.
+% Note that jmlr2e.sty includes epsfig, amssymb, natbib and graphicx,
+% and defines many common macros, such as 'proof' and 'example'.
+%
+% It also sets the bibliographystyle to plainnat; for more information on
+% natbib citation styles, see the natbib documentation, a copy of which
+% is archived at http://www.jmlr.org/format/natbib.pdf
+
+\usepackage{jmlr2e}
+\usepackage{bbm}
+\usepackage{amsmath}
+
+% Definitions of handy macros can go here
+
+\newcommand{\dataset}{{\cal D}}
+\newcommand{\fracpartial}[2]{\frac{\partial #1}{\partial  #2}}
+
+% Heading arguments are {volume}{year}{pages}{submitted}{published}{author-full-names}
+
+\jmlrheading{1}{2014}{1-48}{4/00}{10/00}{Name 1 and Name2}
+
+% Short headings should be running head and authors last names
+
+\ShortHeadings{Paired passive aggressive for ranking and classification}{Name1 and Name2}
+\firstpageno{1}
+
+\begin{document}
+
+\title{Paired passive aggressive for ranking and classification}
+
+\author{       \name Author I \email author1@somewhere \\
+       \addr Department of \\
+       University of \\
+       City, WA 98195-4322, USA
+       \AND
+       \name Author II \email author2@somewhere \\
+       \addr Department of \\
+       University of \\
+       City, WA 98195-4322, USA
+       }
+\editor{some editor}
+
+\maketitle
+
+\begin{abstract}%   <- trailing '%' for backward compatibility of .sty file
+This paper describes the ....
+\end{abstract}
+
+\begin{keywords}
+  Passive aggressive, AUC, MAP
+\end{keywords}
+
+\section{Introduction}
+
+Here is some introduction...\\
+
+
+\section{The second section }
+Varient 1 - sequantial balanced passive aggressive \\
+Varient 2 - using the different cases \\
+Varient 3 - solving the exact using DCA \\
+Varient 4 - multiclass \\
+
+{\noindent \em Remainder omitted in this sample. See http://www.jmlr.org/papers/ for full paper.}
+
+% Acknowledgements should go at the end, before appendices and references
+
+\acks{We would like to acknowledge support for this project
+.... }
+
+% Manual newpage inserted to improve layout of sample file - not
+% needed in general before appendices/bibliography.
+
+\newpage
+
+\appendix
+\section*{Appendix A.}
+\label{app:theorem}
+
+% Note: in this sample, the section number is hard-coded in. Following
+% proper LaTeX conventions, it should properly be coded as a reference:
+
+%In this appendix we prove the following theorem from
+%Section~\ref{sec:textree-generalization}:
+
+In this appendix we prove the following theorem from
+Section~X.X:
+
+\noindent
+
+{\bf Theorem} {\it First we will show that the 1 - AUC is bounded by the mean 
+of the errors in the first class and the mean number of errors in the second
+class.  $1 - AUC \leq E(M^+) + E(M^-)$ 
+} \hfill\BlackBox
+
+{\bf Proof} 
+\begin{multline}
+1 - AUC = \frac{1}{|X^-| |X^+|} \sum\limits_{x^+ \in X^+, x^- \in X^-}{  \mathbbm{1}_{w^T x^+ \leq w^T x^-} } \;\;\leq \\
+\frac{1}{|X^-| |X^+|}  \sum\limits_{x^+ \in X^+, x^- \in X^-}{  \mathbbm{1}_{w^T x^+ \leq 0} \;+\; \mathbbm{1}_{0 \leq w^T x^-}  }  \;\;= \\
+\frac{1}{|X^+|}  \sum\limits_{x^+ \in X^+}{  \mathbbm{1}_{w^T x^+ \leq 0} } \;+\; \frac{1}{|X^-|}  \sum\limits_{x^- \in X^-}{\mathbbm{1}_{0 \leq w^T x^-}  }   \;= \;
+E(M^+) + E(M^-)
+\end{multline}
+and that is that.\\
+
+
+{\bf Theorem} {\it The sum of the average mistake in the two classes can be bounded \\
+$E(M^+) + E(M^-) \leq 
+\frac{1}{|X^-| |X^+|} \; max\{R^2, 1/C\}( ||{\bf u}||^2 + 2C \sum\limits_{t=1}^T{ l_t^{*+} + l_t^{*-}} ) $
+} \hfill\BlackBox
+
+{\bf Proof}.
+\begin{multline}
+.
+\end{multline}
+
+
+\vskip 0.2in
+\bibliography{sample}
+
+\end{document}
