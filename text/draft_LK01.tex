@@ -13,7 +13,9 @@
 \usepackage{amsmath}
 
 % Definitions of handy macros can go here
-
+\input{definitions}
+\newcommand{\vxp}{\vx^+}
+\newcommand{\vxn}{\vx^-}
 \newcommand{\dataset}{{\cal D}}
 \newcommand{\fracpartial}[2]{\frac{\partial #1}{\partial  #2}}
 
@@ -52,18 +54,13 @@ This paper describes the ....
   Passive aggressive, AUC, MAP
 \end{keywords}
 
-\section{Introduction}
 
-Here is some introduction...\\
-
-
-\section{The second section }
-Varient 1 - sequantial balanced passive aggressive \\
-Varient 2 - using the different cases \\
-Varient 3 - solving the exact using DCA \\
-Varient 4 - multiclass \\
-
-{\noindent \em Remainder omitted in this sample. See http://www.jmlr.org/papers/ for full paper.}
+\input{introduction}
+\input{problem_setting}
+\input{avg_loss}
+\input{double_slack}
+\input{multilabel}
+\input{experiments}
 
 % Acknowledgements should go at the end, before appendices and references
 
@@ -97,9 +94,9 @@ class.  $1 - AUC \leq E(M^+) + E(M^-)$
 
 {\bf Proof} 
 \begin{multline}
-1 - AUC = \frac{1}{|X^-| |X^+|} \sum\limits_{x^+ \in X^+, x^- \in X^-}{  \mathbbm{1}_{w^T x^+ \leq w^T x^-} } \;\;\leq \\
-\frac{1}{|X^-| |X^+|}  \sum\limits_{x^+ \in X^+, x^- \in X^-}{  \mathbbm{1}_{w^T x^+ \leq 0} \;+\; \mathbbm{1}_{0 \leq w^T x^-}  }  \;\;= \\
-\frac{1}{|X^+|}  \sum\limits_{x^+ \in X^+}{  \mathbbm{1}_{w^T x^+ \leq 0} } \;+\; \frac{1}{|X^-|}  \sum\limits_{x^- \in X^-}{\mathbbm{1}_{0 \leq w^T x^-}  }   \;= \;
+1 - AUC = \frac{1}{|X^-| |X^+|} \sum\limits_{x^+ \in X^+, x^- \in X^-}{  \mathbbm{1}_{\vw^T \vx^+ \leq \vw^T \vx^-} } \;\;\leq \\
+\frac{1}{|X^-| |X^+|}  \sum\limits_{\vxp \in X^+, \vxn \in X^-}{  \mathbbm{1}_{\vw^T \vxp \leq 0} \;+\; \mathbbm{1}_{0 \leq \vw^T \vxn}  }  \;\;= \\
+\frac{1}{|X^+|}  \sum\limits_{\vxp \in X^+}{  \mathbbm{1}_{\vw^T \vxp \leq 0} } \;+\; \frac{1}{|X^-|}  \sum\limits_{\vxn \in X^-}{\mathbbm{1}_{0 \leq \vw^T \vxn }  }   \;= \;
 E(M^+) + E(M^-)
 \end{multline}
 and that is that.\\
