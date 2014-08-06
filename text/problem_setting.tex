@@ -4,4 +4,17 @@ Notation
 
 AUC notation $\vx+$ and $\vx-$....
 
-loss
+We are interested in the case where at each time point $t$ we receive a batch of $n_t$ sample and than choose how to update the vector weights $\vw$. At each time point $t$ we solve an optimization problem which performs a trade off between two things. First, it aims that the new solution $\vw$ will be close to the former weight vector $w_t$. Second we prefer to classify all the samples provided at time $t$ correctly with a margin of 1.
+
+\begin{equation*}
+\begin{aligned}
+& \underset{\vw}{\text{minimize}}
+& & \frac{1}{2} || \vw - \vw_t ||^2 + C \sum\limits_{i=1}^{n_t}{\xi_i} \\
+& \text{subject to}
+& & 1 - \vw^T \vx_i \vy_i \leq \xi_i, \;
+ \; i = 1, \ldots, n_t.
+\end{aligned}
+\end{equation*}
+
+There are some benefits of an update which uses several samples for the update. First, in cases where the data is unbalanced, using a balanced updating scheme that introduce an equal number of samples at time point $t$ we can come up with guaranties both for the classification mistakes and for the AUC.
+Second, an update rule that uses several samples at a single time point $t$ is internally tuned since the we need to advanced $\vw$ in a way that is agreeable with the samples at time $t$.

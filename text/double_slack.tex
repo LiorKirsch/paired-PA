@@ -1,15 +1,63 @@
 \section{Double-slack}
 
-Define the new problem
+We are interested in solving a passive aggressive style problem only that we are shown $n_t$ examples at time $t$. Thjs minibatch setting and the way we choose to solve it have a great deal of implication on the solution where different steps will yield different results.
 
-Derive update rules using DCA
+\begin{equation*}
+\begin{aligned}
+& \underset{\vw}{\text{minimize}}
+& & \frac{1}{2} || \vw - \vw_t ||^2 + C \sum\limits_{i=1}^{n_t}{\xi_i} \\
+& \text{subject to}
+& & 1 - \vw^T \vx_i \vy_i \leq \xi_i, \;
+ \; i = 1, \ldots, n_t.
+\end{aligned}
+\end{equation*}
 
-Derive update rules by calling PA sequentially 
+
+The dual problem is 
+\begin{equation*}
+\begin{aligned}
+& \underset{\valpha}{\text{maximize}}
+& & \frac{1}{2} || \sum\limits_{i=1}^{n_t} {\alpha_i \vx_i \vy_i}||^2 + \sum\limits_{i=1}^{n_t} {\alpha_i (1 - \vw_t^T \vx_i \vy_i }) \\
+& \text{subject to}
+& & 0 \leq \alpha_i \leq C, \;
+ \; i = 1, \ldots, n_t.
+\end{aligned}
+\end{equation*}
+
+
+We aim to maximize the dual function so at each step we choose a set of indices $\mathcal{J} $ to increase using the same step.
+\[ \alpha_j = \alpha_j + \delta , \;\; j \in \mathcal{J} \]
+We derive the following $\delta$
+\[ \delta = max(L_b   , min(U_b , \frac{|\mathcal{J}| - \vw_t^T \sum\limits_{j \in \mathcal{J}} {\vx_j y_j}   }{|| \sum\limits_{j \in \mathcal{J} }{\vx_j y_j} ||^2 }  ) )
+\]
+Where $ L_b = max_{ j \in \mathcal{J} } (-\alpha_j) $ and $ U_b = min_{ j \in \mathcal{J} } (C -\alpha_j) $ which appear since each of the updated $\alpha_j$ needs to keep its constrain $0 \leq \alpha_j \leq C $.
+It is possible that a step that advances all $j \in \mathcal{J} $ does not exists because $ U_b $ could be smaller than $L_b$. We will always be able to perform at least one such step since we initialize $\alpha_i$ as zero. If we partition the set of samples and at each iteration we use a different partition, we are guaranteed that $L_b \leq U_b $ since we advance all the dual variables in each partition with the same steps.\\
+
+
+
+We can think of this as updating a new vector $\vx^\mathcal{J} = \sum\limits_{j \in \mathcal{J} }{\vx_j y_j}$ where $y^\mathcal{J} = 1 $. Only here $\vx^\mathcal{J}$ should be correct with a margin of $|\mathcal{J}| $.  We than update $\vw$ using $\vx^\mathcal{J}$ with the step size $\delta$.
+* this is not entirely correct because of the constrains we have on the $\delta$.
+
+Using various sets of $ \mathcal{J} $ and various number of iteration at time $t$ we propose several update rules:\\
+
+In the case where at time $t$ we are provided with two samples ($n_t=2$), $\vxp, \vxn$.\\
+I. PA-DCA - Iterate until convergence at each iteration choose a single sample ($|\mathcal{J}|=1$).\\
+II. PA-sequential - Iterate only once for $\vxp$ and than once for $\vxn$.\\
+III. PA-AUC - Iterate only once using both samples $\mathcal{J} = \{\vxp, \vxn\} $ .\\
+IV. PA-correctMistakes - Iterate only once use only the samples that failed to achieve correct classification with the margin. $\mathcal{J} = \{\vxp, \vxn\} \; or \;\{\vxp \} \; or \; \{ \vxn \}$.\\
+
+In the case where we are presented $n$ samples. \\
+I. PA-DCA - Iterate until convergence at each iteration choose a single sample ($|\mathcal{J}|=1$).\\
+II. PA-sequential - Iterate only once for each sample.\\
+III. PA-maxViolators - Iterate only once. Here $\mathcal{J}$ contains the positive sample that caused the highest loss and the negative sample that caused the highest loss. \\
+IV. PA-correctMistakes - Iterate only once use only the samples that failed to achieve correct classification with the margin. $\mathcal{J} = \{ i | 0 \leq l_{w_t}(\vx_i, y_i) \}$.\\
+
 
 Theorem 4: convergence of DCA
 
 Theorem 5: classification errors --> number of mistakes
 
-Theorem 6: Show that classification is correct and $ w x+ >0$ while $w x- < 0$ after the update
+Theorem 6: As in the case of the classical passive aggressive if our step is not caped by C after the update we will correctly classify the samples. In case where we are caped by C the loss of the samples we choose to update will decrease. But we are not guarantied a correct classification. \\
+Show that classification is correct and $ w x+ >0$ while $w x- < 0$ after the update when it is not caped.
 
 Theorem 7: from Theorem 5 it follows that 1-AUC is bounded
