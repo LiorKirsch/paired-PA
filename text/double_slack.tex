@@ -35,8 +35,10 @@ It is possible that a step that advances all $j \in \mathcal{J} $ does not exist
 
 
 
-We can think of this as updating a new vector $\vx^\mathcal{J} = \sum\limits_{j \in \mathcal{J} }{\vx_j y_j}$ where $y^\mathcal{J} = 1 $. Only here $\vx^\mathcal{J}$ should be correct with a margin of $|\mathcal{J}| $.  We than update $\vw$ using $\vx^\mathcal{J}$ with the step size $\delta$.
+We can think of this as updating a new vector $\vx^\mathcal{J} = \sum\limits_{j \in \mathcal{J} }{\vx_j y_j}$ where $y^\mathcal{J} = 1 $. Only here $\vx^\mathcal{J}$ should be correct with a margin of $|\mathcal{J}| $.  We than update $\vw$ using $\vx^\mathcal{J}$ with the step size $\delta$. 
 * this is not entirely correct because of the constrains we have on the $\delta$.
+Notice that by multiple items in $\mathcal{J}$ we make a statement about their linear combination and not any of them individually. For example, when we update two items a positive sample $\vxp$ and a negative sample $\vxn$ forcing that their sum should be classified positive $0 \leq \vw^T (\vxp - \vxn) $ we actually argue about their order we say that their difference should be kept positive or that $ \vw^T \vxn \leq \vw^T \vxp$.
+
 
 Using various sets of $ \mathcal{J} $ and various number of iteration at time $t$ we propose several update rules:\\
 

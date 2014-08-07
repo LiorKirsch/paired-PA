@@ -1,8 +1,6 @@
 \section{Problem Setting}
 
-Notation
-
-AUC notation $\vx+$ and $\vx-$....
+In this section we introduce the notation used throughout the paper and describe our problem setting. Vectors are denoted by lower case bold face letters (e.g. $\vx$ and $\vw$) where the $i^{th}$ element of the vector $\vx$ is denoted by $\vx_i$. The hinge function is denoted by $[x]_+ = max\{0, x\} $. Sets are denoted by capital curly letters (e.g $\mathcal{J}$).\\
 
 We are interested in the case where at each time point $t$ we receive a batch of $n_t$ sample and than choose how to update the vector weights $\vw$. At each time point $t$ we solve an optimization problem which performs a trade off between two things. First, it aims that the new solution $\vw$ will be close to the former weight vector $w_t$. Second we prefer to classify all the samples provided at time $t$ correctly with a margin of 1.
 
