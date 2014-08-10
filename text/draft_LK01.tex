@@ -101,6 +101,20 @@ E(M^+) + E(M^-)
 \end{multline}
 and that is that.\\
 
+Next we will show that we mutlicalss AUC which uses the mean AUC of all pairs can also be bounded by mean classification mistakes.\\
+
+{\bf Theorem} {\it First we will show that the 1 - AUC is bounded by the mean 
+of the errors in the first class and the mean number of errors in the second
+class.  $1 - AUC_{all pairs} \leq \frac{1}{K} ( \sum\limits_{k=1}^{K} E(M_{w^k}(C^k)) + \frac{1}{k-1} ( \sum\limits_{l \neq k}  E(M_{w^k}(C^l)) ) $ 
+} \hfill\BlackBox
+
+{\bf Proof} 
+\begin{multline}
+1 - AUC_{all pairs}  = 1 - \frac{1}{K(K-1)} \sum\limits_{k=1}^{K}  \sum\limits_{l \neq k} (AUC_{w^k}(C^k, C^l)) \;\;\leq \\
+\frac{1}{K(K-1)} \sum\limits_{k=1}^{K}  \sum\limits_{l \neq k} E(M_{w^k}(C^k)) + E(M_{w^k}(C^l)) \;\; = \\
+\frac{1}{K} ( \sum\limits_{k=1}^{K}  E(M_{w^k}(C^k)) +  \frac{1}{K-1} \sum\limits_{l \neq k} E(M_{w^k}(C^l)  ))
+\end{multline}
+\\
 
 {\bf Theorem} {\it The sum of the average mistake in the two classes can be bounded \\
 $E(M^+) + E(M^-) \leq 

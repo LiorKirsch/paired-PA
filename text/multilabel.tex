@@ -2,6 +2,20 @@
 
 Calibrated separation ranking loss was proposed by \cite{GuoShuurmans11}
 
+We are interested in the case where we have more than 2 classses and these classes are unbalanced. For this multliclass scenario we follow the $mutliclass AUC$ suggested by ... 
+We define $AUC_{all pairs}$ by:
+\[
+	AUC_{all pairs} = \frac{1}{K} \sum\limits_{k=1}^{K}  \frac{1}{K-1}\sum\limits_{l \neq k} (AUC_{w^k}(C^k, C^l)) 
+\]
+Where $C_i$ denote all the samples from class $i$, and $AUC_{w^k}(C^k, C^l)$ is the AUC performed on the samples from the $k$ class and samples from the $l$ class using the classifier $ \vw^k $ train using the samples from the k class as positivies.
+\[
+1 - AUC_{all pairs} \leq \frac{1}{K} ( \sum\limits_{k=1}^{K} E(M_{w^k}(C^k)) + \frac{1}{k-1} ( \sum\limits_{l \neq k}  E(M_{w^k}(C^l)) )
+\]
+This suggest that at time $t$ to train our classifier $\vw^k $ we need to present to it a positive sample from the $k$ class (with a weight of K-1) and negative samples from the other K-1 classes.\\
+\\
+\[
+  \vw^k_t = \vw^k_{t-1} + (K-1)\alpha^k_t \vx^k_t - \sum\limits_{l \neq k} \alpha^l_t \vx^l_t
+\]
 Derive update rule
 
 Theorem 8: correct multilabels are above the incorrect set of labels
