@@ -2,12 +2,12 @@
 
 Calibrated separation ranking loss was proposed by \cite{GuoShuurmans11}
 
-We are interested in the case where we have more than 2 classses and these classes are unbalanced. For this multliclass scenario we follow the $mutliclass AUC$ suggested by ... 
+We are interested in the case where we have more than 2 classes and these classes are unbalanced. For this multliclass scenario we follow the $mutliclass AUC$ suggested by ... 
 We define $AUC_{all \; pairs}$ by:
 \[
 	AUC_{all \; pairs} = \frac{1}{K} \sum\limits_{k=1}^{K}  \frac{1}{K-1}\sum\limits_{l \neq k} (AUC_{w^k}(C^k, C^l)) 
 \]
-Where $C_i$ denote all the samples from class $i$, and $AUC_{w^k}(C^k, C^l)$ is the AUC performed on the samples from the $k$ class and samples from the $l$ class using the classifier $ \vw^k $ train using the samples from the k class as positivies.
+Where $C_i$ denote all the samples from class $i$, and $AUC_{w^k}(C^k, C^l)$ is the AUC performed on the samples from the $k$ class and samples from the $l$ class using the classifier $ \vw^k $ train using the samples from the k class as positives.
 \[
 1 - AUC_{all \; pairs} \leq \frac{1}{K} ( \sum\limits_{k=1}^{K} E(M_{w^k}(C^k)) + \frac{1}{k-1} ( \sum\limits_{l \neq k}  E(M_{w^k}(C^l)) )
 \]
@@ -18,7 +18,7 @@ This suggest that at time $t$ to train our classifier $\vw^k $ we need to presen
 \]
 
 
-The update rule is derivied using $\mathcal{J} = \{ i | 0 \leq l_{w_t}(\vx_i, y_i) \}$, we choose to update only the dual variables from the samples that we failed to be classified using the required margin.
+The update rule is derived using $\mathcal{J} = \{ i | 0 \leq l_{w_t}(\vx_i, y_i) \}$, we choose to update only the dual variables from the samples that we failed to be classified using the required margin.
 
 \[ \delta = max(L_b   , min(U_b , \frac{|\mathcal{J}| - \vw_t^T \sum\limits_{j \in \mathcal{J}} {\vx_j y_j}   }{|| \sum\limits_{j \in \mathcal{J} }{\vx_j y_j} ||^2 }  ) )
 \]

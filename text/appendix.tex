@@ -32,7 +32,7 @@ Next we will show that we mutlicalss AUC which uses the mean AUC of all pairs ca
 
 {\bf Theorem} {\it $1 - AUC_{all \; pairs}$ can be bounded by: \\
  $1 - AUC_{all \; pairs} \leq \frac{1}{K}  \sum\limits_{k=1}^{K}  \left( E_{X^k}(M_{\vw^k}) + \frac{1}{k-1} ( \sum\limits_{l \neq k}  E_{X^l}(M_{\vw^k})  \right) $ 
-\\ Where $E_{X^l}(M_{\vw^k})$ are the expected number of mistakes from class $l$ that are made by the classifier that was trained to classify class $k$ as postivies.}
+\\ Where $E_{X^l}(M_{\vw^k})$ are the expected number of mistakes from class $l$ that are made by the classifier that was trained to classify class $k$ as positives.}
 \\
 
 {\bf Proof} 
@@ -52,7 +52,7 @@ $E_{X^+}[M] + E_{X^-}[M] \leq \; max\{1/C, R^2\}( \; 2C (E_{X^+}[l^{*}] + E_{X^-
 
 
 {\bf Proof}.
-We use the inequalty from the PA paper which states that $M$ - the number of mistakes made by introducing samples from $X^+$ and samples from $X^-$ can be bounded : \\
+We use the inequality from the PA paper which states that $M$ - the number of mistakes made by introducing samples from $X^+$ and samples from $X^-$ can be bounded : \\
 \begin{multline}
  M= \sum\limits_{ \substack{x^+ \in X^+ \\ x^- \in X^-}} {  \mathbbm{1}_{\vw^T \vxp \leq 0} \;+\; \mathbbm{1}_{0 \leq \vw^T \vxn}  } \leq \\
  max\{1/C, R^2\}( \; 2C \sum\limits_{ \substack{x^+ \in X^+ \\ x^- \in X^-}}l^{*} +
@@ -71,7 +71,7 @@ Dividing by the number of samples we get:
 \end{multline}
 \hfill\BlackBox
 
-The next result extend this inequalty to the multiclass case. First we denote the set of samples from the $k$ class using $X^k$. We are now interested in matching each samples from the $k$ class with each sample from the other $K-1$ classes. By iterating the paired classes we get: 
+The next result extend this inequality to the multiclass case. First we denote the set of samples from the $k$ class using $X^k$. We are now interested in matching each samples from the $k$ class with each sample from the other $K-1$ classes. By iterating the paired classes we get: 
 \begin{multline}
 \frac{1}{K-1} \sum\limits_{l \neq k} E_{X^k}[M] + E_{X^l}[M] \leq \; \\
 \frac{1}{K-1} \sum\limits_{l \neq k} max\{1/C, R^2\}( \; 2C (E_{X^k}[l^{*}] + E_{X^l}[l^{*}]) + \frac{1}{|X^k| |X^l|}  ||{\bf u}||^2  \;) 
