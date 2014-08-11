@@ -5,10 +5,10 @@ We are interested in solving a passive aggressive style problem only that we are
 \begin{equation*}
 \begin{aligned}
 & \underset{\vw}{\text{minimize}}
-& & \frac{1}{2} || \vw - \vw_t ||^2 + C \sum\limits_{i=1}^{k_t}{\xi_i} \\
+& & \frac{1}{2} || \vw - \vw_t ||^2 + C \sum\limits_{k=1}^{k_t}{\xi^k} \\
 & \text{subject to}
-& & 1 - \vw^T \vx_i \vy_i \leq \xi_i, \;
- \; i = 1, \ldots, k_t.
+& & 1 - \vw^T \vx^k \vy^k \leq \xi^k, \;
+ \; k = 1, \ldots, k_t.
 \end{aligned}
 \end{equation*}
 
@@ -17,25 +17,26 @@ The dual problem is
 \begin{equation*}
 \begin{aligned}
 & \underset{\valpha}{\text{maximize}}
-& & \frac{1}{2} || \sum\limits_{i=1}^{k_t} {\alpha_i \vx_i \vy_i}||^2 + \sum\limits_{i=1}^{k_t} {\alpha_i (1 - \vw_t^T \vx_i \vy_i }) \\
+& & \frac{1}{2} || \sum\limits_{i=1}^{k_t} {\alpha_i \vx^k y^k}||^2 + \sum\limits_{k=1}^{k_t} {\alpha_i (1 - \vw_t^T \vx^k \vy^k }) \\
 & \text{subject to}
 & & 0 \leq \alpha_i \leq C, \;
- \; i = 1, \ldots, k_t.
+ \; k = 1, \ldots, k_t.
 \end{aligned}
 \end{equation*}
 
 
-We aim to maximize the dual function so at each step we choose a set of indices $\mathcal{J} $ to increase using the same step.
-\[ \alpha_j = \alpha_j + \delta , \;\; j \in \mathcal{J} \]
-We derive the following $\delta$
-\[ \delta = max(L_b   , min(U_b , \frac{|\mathcal{J}| - \vw_t^T \sum\limits_{j \in \mathcal{J}} {\vx_j y_j}   }{|| \sum\limits_{j \in \mathcal{J} }{\vx_j y_j} ||^2 }  ) )
+This problem does not have a closed analytical solution, So we aim to maximize the dual function iterativly. One way of solving this is using ${\i dual coordinate ascent}$ (DCA) on all the $k_t$ samples. DCA will make iteration until convergance. However as noticed by ...,  we can also make a small advancement that is not optimal but that will advance us in the right direction. For example the passive aggressive algorithem can be thought of as single iteration of DCA where we update each dual variable only once. We suggest that this can be extanded by advancing with a step that is made using the joined information of several samples. We choose a set of indices $\mathcal{J} $ to increase using the ${\b same }$ step.
+
+\[ \alpha_j = \alpha_j + \tau , \;\; j \in \mathcal{J} \]
+We derive the following $\tau$
+\[ \tau = max(L_b   , min(U_b , \frac{|\mathcal{J}| - \vw_t^T \sum\limits_{j \in \mathcal{J}} {\vx^j y^j}   }{|| \sum\limits_{j \in \mathcal{J} }{\vx^j y^j} ||^2 }  ) )
 \]
 Where $ L_b = max_{ j \in \mathcal{J} } (-\alpha_j) $ and $ U_b = min_{ j \in \mathcal{J} } (C -\alpha_j) $ which appear since each of the updated $\alpha_j$ needs to keep its constrain $0 \leq \alpha_j \leq C $.
 It is possible that a step that advances all $j \in \mathcal{J} $ does not exists because $ U_b $ could be smaller than $L_b$. We will always be able to perform at least one such step since we initialize $\alpha_i$ as zero. If we partition the set of samples and at each iteration we use a different partition, we are guaranteed that $L_b \leq U_b $ since we advance all the dual variables in each partition with the same steps.\\
 
 
 
-We can think of this as updating a new vector $\vx^\mathcal{J} = \sum\limits_{j \in \mathcal{J} }{\vx_j y_j}$ where $y^\mathcal{J} = 1 $. Only here $\vx^\mathcal{J}$ should be correct with a margin of $|\mathcal{J}| $.  We than update $\vw$ using $\vx^\mathcal{J}$ with the step size $\delta$. This analogy is not entirely correct because of the constrains we have on the $\delta$.
+We can think of this as updating a new vector $\vx^\mathcal{J} = \sum\limits_{j \in \mathcal{J} }{\vx_j y_j}$ where $y^\mathcal{J} = 1 $. Only here $\vx^\mathcal{J}$ should be correct with a margin of $|\mathcal{J}| $.  We than update $\vw$ using $\vx^\mathcal{J}$ with the step size $\tau$. This analogy is not entirely correct because of the constrains we have on the $\tau$.
 
 
 Notice that by using multiple items in $\mathcal{J}$ we make a statement about their linear combination and not any of them individually. For example, when we update two items a positive sample $\vxp$ and a negative sample $\vxn$ forcing that their sum should be classified positive $0 \leq \vw^T (\vxp - \vxn) $ we actually argue about their order we say that their difference should be kept positive or that $ \vw^T \vxn \leq \vw^T \vxp$.
