@@ -1,13 +1,51 @@
 \section{Average Classification Loss}
 
-Define the loss and the problem
+We first start by examining the case where we have only two classes. We denote our classes with $X^+$ and $X^-$.
 
-Derive the update rule
+\begin{equation*}
+\begin{aligned}
+& \underset{\vw}{\text{minimize}}
+& & \frac{1}{2} || \vw - \vw_t ||^2 + C ( \xi^+ + \xi^- ) \\
+& \text{subject to}
+& & 1 - \vw^T \vx^+ \leq \xi^+\\
+& & & 1 + \vw^T \vx^-  \leq \xi^- \\
+& & & 0 \leq \xi^+, \xi^-
+\end{aligned}
+\end{equation*}
 
 
-Theorem 1: the expected loss is less than the average loss
+The dual problem is 
+\begin{equation*}
+\begin{aligned}
+& \underset{\alpha^+, \alpha^-}{\text{maximize}}
+& & \frac{1}{2} || \alpha^+ \vx^+ - \alpha^- \vx^-||^2 + \alpha^+ (1 - \vw_t^T \vx^+ ) + \alpha^- (1 + \vw_t^T \vx^- )\\
+& \text{subject to}
+& & 0 \leq \alpha^+,\alpha^- \leq C, 
+\end{aligned}
+\end{equation*}
 
-Theorem 2: 1-AUC is bounded 
+
+First notice that by adding the two constrains we get $1 - \vw^T \frac{(\vx^+ - \vx^- )}{2} \leq \frac{\xi^+ + \xi^-}{2}$. By replacing the two constrain with this new constrain we get a type of problem that is known as $PA_{AUC}$. By solving this problem we aim at insuring that the $\vxp$ and $\vxn$ are ranked correctly ($ \vw^T \vxn \leq \vw^T \vxp $).  By solving the problem with the two constrains we are not gurantied that we $\vxp$ will be classified higher than $\vxn$ but also that we classify the two samples correctly. The problem of ranking correctly postive samples above negative samples is related to the AUC since AUC can be interpreted as the probabilty that a postive samples will be ranked higher than a negative sample.
+
+Perfect classification means a AUC = 1, but we can also prove that the 1 - AUC can be bounded by the mean number of mistakes made in the first class and the mean number of mistakes made in the second class.
+
+{\bf Theorem 1} {\it 1 - AUC is bounded by the mean 
+of the errors in the first class and the mean number of errors in the second
+class.  $1 - AUC \leq E(M^+) + E(M^-)$ 
+}
+
+{\bf Proof} 
+\begin{multline}
+1 - AUC = \frac{1}{|X^-| |X^+|} \sum\limits_{ \substack{x^+ \in X^+ \\ x^- \in X^-}} {  \mathbbm{1}_{\vw^T \vx^+ \leq \vw^T \vx^-} } \;\;\leq \\
+\frac{1}{|X^-| |X^+|}  \sum\limits_{ \substack{x^+ \in X^+ \\ x^- \in X^-}} {  \mathbbm{1}_{\vw^T \vxp \leq 0} \;+\; \mathbbm{1}_{0 \leq \vw^T \vxn}  }  \;\;= \\
+\frac{1}{|X^+|}  \sum\limits_{\vxp \in X^+}{  \mathbbm{1}_{\vw^T \vxp \leq 0} } \;+\; \frac{1}{|X^-|}  \sum\limits_{\vxn \in X^-}{\mathbbm{1}_{0 \leq \vw^T \vxn }  }   \;= \;
+E(M^+) + E(M^-)
+\end{multline}
+\hfill\BlackBox \\
+
+
+We will next show that we can provide bounds for the sum of the mean number of errors using several update rules.
+
 
 Theorem 3: Show that classification is correct and $\vxp >0$ while $\vxn < 0$ after the update - this is not correct since we are balancing with $w_t$ from the former step.
 This would have been correct if we would have possed this is a feasibility problem (perceptron style).
