@@ -16,8 +16,11 @@ This suggest that at time $t$ to train our classifier $\vw^k $ we need to presen
 \[
   \vw^k_t = \vw^k_{t-1} + \alpha^k_t \vx^k_t - \frac{1}{k-1}\sum\limits_{l \neq k} \alpha^l_t \vx^l_t
 \]
-Derive update rule
+
+
+The update rule is derivied using $\mathcal{J} = \{ i | 0 \leq l_{w_t}(\vx_i, y_i) \}$, we choose to update only the dual variables from the samples that we failed to be classified using the required margin.
+
+\[ \delta = max(L_b   , min(U_b , \frac{|\mathcal{J}| - \vw_t^T \sum\limits_{j \in \mathcal{J}} {\vx_j y_j}   }{|| \sum\limits_{j \in \mathcal{J} }{\vx_j y_j} ||^2 }  ) )
+\]
 
 Theorem 8: correct multilabels are above the incorrect set of labels
-
-Can we show that 1-MAP is bounded?

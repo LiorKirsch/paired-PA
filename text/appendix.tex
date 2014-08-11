@@ -1,0 +1,87 @@
+
+\section*{Appendix A.}
+\label{app:theorem}
+
+% Note: in this sample, the section number is hard-coded in. Following
+% proper LaTeX conventions, it should properly be coded as a reference:
+
+%In this appendix we prove the following theorem from
+%Section~\ref{sec:textree-generalization}:
+
+In this appendix we prove the following theorem from
+Section~X.X:
+
+\noindent
+
+{\bf Theorem} {\it First we will show that the 1 - AUC is bounded by the mean 
+of the errors in the first class and the mean number of errors in the second
+class.  $1 - AUC \leq E(M^+) + E(M^-)$ 
+}
+
+{\bf Proof} 
+\begin{multline}
+1 - AUC = \frac{1}{|X^-| |X^+|} \sum\limits_{ \substack{x^+ \in X^+ \\ x^- \in X^-}} {  \mathbbm{1}_{\vw^T \vx^+ \leq \vw^T \vx^-} } \;\;\leq \\
+\frac{1}{|X^-| |X^+|}  \sum\limits_{ \substack{x^+ \in X^+ \\ x^- \in X^-}} {  \mathbbm{1}_{\vw^T \vxp \leq 0} \;+\; \mathbbm{1}_{0 \leq \vw^T \vxn}  }  \;\;= \\
+\frac{1}{|X^+|}  \sum\limits_{\vxp \in X^+}{  \mathbbm{1}_{\vw^T \vxp \leq 0} } \;+\; \frac{1}{|X^-|}  \sum\limits_{\vxn \in X^-}{\mathbbm{1}_{0 \leq \vw^T \vxn }  }   \;= \;
+E(M^+) + E(M^-)
+\end{multline}
+\hfill\BlackBox \\
+
+
+Next we will show that we mutlicalss AUC which uses the mean AUC of all pairs can also be bounded by mean classification mistakes.\\
+
+{\bf Theorem} {\it $1 - AUC_{all \; pairs}$ can be bounded by: \\
+ $1 - AUC_{all \; pairs} \leq \frac{1}{K}  \sum\limits_{k=1}^{K}  \left( E_{X^k}(M_{\vw^k}) + \frac{1}{k-1} ( \sum\limits_{l \neq k}  E_{X^l}(M_{\vw^k})  \right) $ 
+\\ Where $E_{X^l}(M_{\vw^k})$ are the expected number of mistakes from class $l$ that are made by the classifier that was trained to classify class $k$ as postivies.}
+\\
+
+{\bf Proof} 
+\begin{multline}
+1 - AUC_{all \; pairs}  = 1 - \frac{1}{K(K-1)} \sum\limits_{k=1}^{K}  \sum\limits_{l \neq k} (AUC_{\vw^k}(X^k, X^l)) \;\;\leq \\
+\frac{1}{K(K-1)} \sum\limits_{k=1}^{K}  \sum\limits_{l \neq k} E_{X^k}(M_{\vw^k}) + E_{X^l}(M_{\vw^k}) \;\; = \\
+\frac{1}{K} \sum\limits_{k=1}^{K}  \left( E_{X^k}(M_{\vw^k}) +  \frac{1}{K-1} \sum\limits_{l \neq k} E_{X^l}(M_{\vw^k}  ) \right)
+\end{multline}
+\hfill\BlackBox
+\\
+
+{\bf Theorem} {\it The sum of the average mistake in the two classes can be bounded \\
+$E_{X^+}[M] + E_{X^-}[M] \leq \; max\{1/C, R^2\}( \; 2C (E_{X^+}[l^{*}] + E_{X^-}[l^{*}]) +
+\frac{1}{|X^-| |X^+|}  ||{\bf u}||^2  \;) $
+} 
+\\
+
+
+{\bf Proof}.
+We use the inequalty from the PA paper which states that $M$ - the number of mistakes made by introducing samples from $X^+$ and samples from $X^-$ can be bounded : \\
+\begin{multline}
+ M= \sum\limits_{ \substack{x^+ \in X^+ \\ x^- \in X^-}} {  \mathbbm{1}_{\vw^T \vxp \leq 0} \;+\; \mathbbm{1}_{0 \leq \vw^T \vxn}  } \leq \\
+ max\{1/C, R^2\}( \; 2C \sum\limits_{ \substack{x^+ \in X^+ \\ x^- \in X^-}}l^{*} +
+ ||{\bf u}||^2  \;) 
+\end{multline}
+Dividing by the number of samples we get:
+\begin{multline}
+ E_{X^+}[M] + E_{X^-}[M] = 
+ \frac{1}{|X^+|} \sum\limits_{ x^+ \in X^+ }   \mathbbm{1}_{\vw^T \vxp = \leq 0} \;+\; 
+ \frac{1}{|X^-|} \sum\limits_{ x^- \in X^- } \mathbbm{1}_{0 \leq \vw^T \vxn} = \\
+ \frac{1}{|X^+| |X^-|} \sum\limits_{ \substack{x^+ \in X^+ \\ x^- \in X^-}} {  \mathbbm{1}_{\vw^T \vxp \leq 0} \;+\; \mathbbm{1}_{0 \leq \vw^T \vxn}  }    \leq \\
+ \frac{1}{|X^+| |X^-|} max\{1/C, R^2\}( \; 2C \sum\limits_{ \substack{x^+ \in X^+ \\ x^- \in X^-}}l^{*} +
+ ||{\bf u}||^2  \;) = \\
+ max\{1/C, R^2\}( \; 2C (E_{X^+}[l^{*}] + E_{X^-}[l^{*}]) +
+\frac{1}{|X^-| |X^+|}  ||{\bf u}||^2  \;) 
+\end{multline}
+\hfill\BlackBox
+
+The next result extend this inequalty to the multiclass case. First we denote the set of samples from the $k$ class using $X^k$. We are now interested in matching each samples from the $k$ class with each sample from the other $K-1$ classes. By iterating the paired classes we get: 
+\begin{multline}
+\frac{1}{K-1} \sum\limits_{l \neq k} E_{X^k}[M] + E_{X^l}[M] \leq \; \\
+\frac{1}{K-1} \sum\limits_{l \neq k} max\{1/C, R^2\}( \; 2C (E_{X^k}[l^{*}] + E_{X^l}[l^{*}]) + \frac{1}{|X^k| |X^l|}  ||{\bf u}||^2  \;) 
+\end{multline}
+
+Rearranging we get:
+\begin{multline}
+E_{X^k}[M] + \frac{1}{K-1} \sum\limits_{l \neq k}  E_{X^l}[M] \leq \; \\
+max\{1/C, R^2\} \left( \; 2C E_{X^k}[l^{*}] + \frac{2C}{K-1} \left( \sum\limits_{l \neq k}  E_{X^l}[l^{*}]) \right) + ||{\bf u}||^2 \frac{1}{|X^k|} ( \sum\limits_{l \neq k} \frac{1}{|X^l|})    \right) 
+\end{multline}
+
+By averaging the $k$ different classifiers, each with it own vector $\vu$ and $l^*$ we can bound the size of $ 1 - AUC_{all \; pairs}$.
+\hfill\BlackBox

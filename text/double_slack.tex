@@ -1,14 +1,14 @@
 \section{Double-slack}
 
-We are interested in solving a passive aggressive style problem only that we are shown $n_t$ examples at time $t$. Thjs minibatch setting and the way we choose to solve it have a great deal of implication on the solution where different steps will yield different results.
+We are interested in solving a passive aggressive style problem only that we are shown $k_t$ examples at time $t$. Specificly we are interested in the case that the samples arrive from different classes. We show that by using a balanced regiem we can provide bounds for the AUC and for a multiclass AUC. The specific method we choose to optimize the problem have a great deal of implication on the solution where different steps will yield different results.
 
 \begin{equation*}
 \begin{aligned}
 & \underset{\vw}{\text{minimize}}
-& & \frac{1}{2} || \vw - \vw_t ||^2 + C \sum\limits_{i=1}^{n_t}{\xi_i} \\
+& & \frac{1}{2} || \vw - \vw_t ||^2 + C \sum\limits_{i=1}^{k_t}{\xi_i} \\
 & \text{subject to}
 & & 1 - \vw^T \vx_i \vy_i \leq \xi_i, \;
- \; i = 1, \ldots, n_t.
+ \; i = 1, \ldots, k_t.
 \end{aligned}
 \end{equation*}
 
@@ -17,10 +17,10 @@ The dual problem is
 \begin{equation*}
 \begin{aligned}
 & \underset{\valpha}{\text{maximize}}
-& & \frac{1}{2} || \sum\limits_{i=1}^{n_t} {\alpha_i \vx_i \vy_i}||^2 + \sum\limits_{i=1}^{n_t} {\alpha_i (1 - \vw_t^T \vx_i \vy_i }) \\
+& & \frac{1}{2} || \sum\limits_{i=1}^{k_t} {\alpha_i \vx_i \vy_i}||^2 + \sum\limits_{i=1}^{k_t} {\alpha_i (1 - \vw_t^T \vx_i \vy_i }) \\
 & \text{subject to}
 & & 0 \leq \alpha_i \leq C, \;
- \; i = 1, \ldots, n_t.
+ \; i = 1, \ldots, k_t.
 \end{aligned}
 \end{equation*}
 
@@ -35,20 +35,21 @@ It is possible that a step that advances all $j \in \mathcal{J} $ does not exist
 
 
 
-We can think of this as updating a new vector $\vx^\mathcal{J} = \sum\limits_{j \in \mathcal{J} }{\vx_j y_j}$ where $y^\mathcal{J} = 1 $. Only here $\vx^\mathcal{J}$ should be correct with a margin of $|\mathcal{J}| $.  We than update $\vw$ using $\vx^\mathcal{J}$ with the step size $\delta$. 
-* this is not entirely correct because of the constrains we have on the $\delta$.
-Notice that by multiple items in $\mathcal{J}$ we make a statement about their linear combination and not any of them individually. For example, when we update two items a positive sample $\vxp$ and a negative sample $\vxn$ forcing that their sum should be classified positive $0 \leq \vw^T (\vxp - \vxn) $ we actually argue about their order we say that their difference should be kept positive or that $ \vw^T \vxn \leq \vw^T \vxp$.
+We can think of this as updating a new vector $\vx^\mathcal{J} = \sum\limits_{j \in \mathcal{J} }{\vx_j y_j}$ where $y^\mathcal{J} = 1 $. Only here $\vx^\mathcal{J}$ should be correct with a margin of $|\mathcal{J}| $.  We than update $\vw$ using $\vx^\mathcal{J}$ with the step size $\delta$. This analogy is not entirely correct because of the constrains we have on the $\delta$.
+
+
+Notice that by using multiple items in $\mathcal{J}$ we make a statement about their linear combination and not any of them individually. For example, when we update two items a positive sample $\vxp$ and a negative sample $\vxn$ forcing that their sum should be classified positive $0 \leq \vw^T (\vxp - \vxn) $ we actually argue about their order we say that their difference should be kept positive or that $ \vw^T \vxn \leq \vw^T \vxp$.
 
 
 Using various sets of $ \mathcal{J} $ and various number of iteration at time $t$ we propose several update rules:\\
 
-In the case where at time $t$ we are provided with two samples ($n_t=2$), $\vxp, \vxn$.\\
+In the case where at time $t$ we are provided with two samples ($k_t=2$), $\vxp, \vxn$.\\
 I. PA-DCA - Iterate until convergence at each iteration choose a single sample ($|\mathcal{J}|=1$).\\
 II. PA-sequential - Iterate only once for $\vxp$ and than once for $\vxn$.\\
 III. PA-AUC - Iterate only once using both samples $\mathcal{J} = \{\vxp, \vxn\} $ .\\
 IV. PA-correctMistakes - Iterate only once use only the samples that failed to achieve correct classification with the margin. $\mathcal{J} = \{\vxp, \vxn\} \; or \;\{\vxp \} \; or \; \{ \vxn \}$.\\
 
-In the case where we are presented $n$ samples. \\
+In the case where we are presented $k$ samples. \\
 I. PA-DCA - Iterate until convergence at each iteration choose a single sample ($|\mathcal{J}|=1$).\\
 II. PA-sequential - Iterate only once for each sample.\\
 III. PA-maxViolators - Iterate only once. Here $\mathcal{J}$ contains the positive sample that caused the highest loss and the negative sample that caused the highest loss. \\
