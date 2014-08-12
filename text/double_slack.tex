@@ -25,7 +25,7 @@ The dual problem is
 \end{equation*}
 
 
-This problem does not have a closed analytic solution, So we aim to maximize the dual function iterativly. One way of solving this is using ${\i dual coordinate ascent}$ (DCA) on all the $k_t$ samples. DCA will make iteration until convergence. However as noticed by ...,  we can also make a small advancement that is not optimal but that will advance us in the right direction. For example the passive aggressive algorithm can be thought of as single iteration of DCA where we update each dual variable only once. We suggest that this can be extended by advancing with a step that is made using the joined information of several samples. We choose a set of indices $\mathcal{J} $ to increase using the ${\b same }$ step.
+This problem does not have a closed analytic solution, So we aim to maximize the dual function iterativly. One way of solving this is using \textit{dual coordinate ascent} (DCA) on all the $k_t$ samples. DCA will make iteration until convergence. However as noticed by ...,  we can also make a small advancement that is not optimal but that will advance us in the right direction. For example the passive aggressive algorithm can be thought of as single iteration of DCA where we update each dual variable only once. We suggest that this can be extended by advancing with a step that is made using the joined information of several samples. We choose a set of indices $\mathcal{J} $ to increase using the ${\b same }$ step.
 
 \[ \alpha_j = \alpha_j + \tau , \;\; j \in \mathcal{J} \]
 We derive the following $\tau$
@@ -36,10 +36,7 @@ It is possible that a step that advances all $j \in \mathcal{J} $ does not exist
 
 
 
-We can think of this as updating a new vector $\vx^\mathcal{J} = \sum\limits_{j \in \mathcal{J} }{\vx_j y_j}$ where $y^\mathcal{J} = 1 $. Only here $\vx^\mathcal{J}$ should be correct with a margin of $|\mathcal{J}| $.  We than update $\vw$ using $\vx^\mathcal{J}$ with the step size $\tau$. This analogy is not entirely correct because of the constrains we have on the $\tau$.
-
-
-Notice that by using multiple items in $\mathcal{J}$ we make a statement about their linear combination and not any of them individually. For example, when we update two items a positive sample $\vxp$ and a negative sample $\vxn$ forcing that their sum should be classified positive $0 \leq \vw^T (\vxp - \vxn) $ we actually argue about their order we say that their difference should be kept positive or that $ \vw^T \vxn \leq \vw^T \vxp$.
+We can think of this as updating a new vector $\vx^\mathcal{J} = \sum\limits_{j \in \mathcal{J} }{\vx^j y^j}$ where $y^\mathcal{J} = 1 $. Only here $\vx^\mathcal{J}$ should be correct with a margin of $|\mathcal{J}| $.  We than update $\vw$ using $\vx^\mathcal{J}$ with the step size $\tau$. By using multiple items in $\mathcal{J}$ we make a statement about their linear combination and not any of them individually. For example, when we update two items a positive sample $\vxp$ and a negative sample $\vxn$ forcing that their sum should be classified positive $0 \leq \vw^T (\vxp - \vxn) $ we actually argue about their order we say that their difference should be kept positive or that $ \vw^T \vxn \leq \vw^T \vxp$.\\
 
 
 Using various sets of $ \mathcal{J} $ and various number of iteration at time $t$ we propose several update rules:\\
