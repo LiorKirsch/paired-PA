@@ -4,7 +4,7 @@ In this section we introduce the notation used throughout the paper and describe
 %where the $i^{th}$ element of the vector $\vx$ is denoted by $\vx_i$. 
 The hinge function is denoted by $[x]_+ = max\{0, x\} $. Sets of indices are denoted by capital curly letters (e.g. $\mathcal{J}$). We denote samples which arrive from the $k$ class using superscript (e.g. $\vx^k$). Subscript will denote the time point the samples is introduced (e.g. $\vx^k_t$ is a vector from the $k$ class at time $t$). \\
 
-We are interested in the case where at each time point $t$ we receive a batch of $k_t$ sample and than choose how to update the vector weights $\vw$. Specifically, we are interest in the case where each of the $k_t$ samples arrives from a different class. At each time point $t$ we solve an optimization problem which performs a trade off between two things. First, it aims that the new solution $\vw$ will be close to the former weight vector $w_t$. Second we prefer to classify all the samples provided at time $t$ correctly with a margin of 1.
+We are interested in the case where at each time point $t$ we receive a batch of $k_t$ sample and than choose how to update the vector weights $\vw$. Specifically, we are interest in the case where each of the $k_t$ samples arrives from a different class. At each time point $t$ we solve an optimization problem which performs a trade off between two things. First, it aims that the new solution $\vw$ will be close to the former weight vector $w_t$. Second we prefer to classify all the samples provided at time $t$ correctly with a margin of 1. The tradeoff is controled by the hyperparameter $C$.
 
 \begin{equation*}
 \begin{aligned}
