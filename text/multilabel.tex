@@ -1,6 +1,4 @@
-\section{Calibrated Multilabel Classification and Ranking}
-
-Calibrated separation ranking loss was proposed by \cite{YuhongGuo}
+\section{Multiclass and  Multilabel }
 
 We are interested in the case where we have more than 2 classes and these classes are unbalanced. For this multliclass scenario we follow the $mutliclass AUC$ suggested by \cite{Hand2001}  
 We define $AUC_{all \; pairs}$ by:
@@ -17,10 +15,18 @@ This suggest that at time $t$ to train our classifier $\vw^k $ we need to presen
   \vw^k_t = \vw^k_{t-1} + \alpha^k_t \vx^k_t - \frac{1}{k-1}\sum\limits_{l \neq k} \alpha^l_t \vx^l_t
 \]
 
+The extension to multilabel is stright forward: At time $t$ select a sample from each of the K classes. Then, for each class we balance the positive and the negative samples. Let $P^k_t$ denote the set of samples at time $t$ that are labeled positivly with class k and $N^k_t$ the set of samples that are not label with class $k$.
+\\
+\[
+  \vw^k_t = \vw^k_{t-1} + \frac{1}{|P^k_t|} \sum\limits_{l \in P^k_t} \alpha^l_t \vx^l_t - \frac{1}{|N^k_t|}\sum\limits_{l \in N^k_t} \alpha^l_t \vx^l_t
+\]
 
 The update rule is derived using $\mathcal{J} = \{ i | 0 \leq l_{w_t}(\vx_i, y_i) \}$, we choose to update only the dual variables from the samples that we failed to be classified using the required margin.
+\\
 
 \[ \delta = max(L_b   , min(U_b , \frac{|\mathcal{J}| - \vw_t^T \sum\limits_{j \in \mathcal{J}} {\vx_j y_j}   }{|| \sum\limits_{j \in \mathcal{J} }{\vx_j y_j} ||^2 }  ) )
 \]
+
+Calibrated separation ranking loss was proposed by \cite{YuhongGuo}
 
 Theorem 8: correct multilabels are above the incorrect set of labels

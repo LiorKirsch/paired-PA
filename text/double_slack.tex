@@ -25,7 +25,7 @@ The dual problem is
 \end{equation*}
 
 
-This problem does not have a closed analytic solution, So we aim to maximize the dual function iterativly. One way of solving this is using \textit{dual coordinate ascent} (DCA) on all the $k_t$ samples. DCA will make iteration until convergence. However as noticed by ...,  we can also make a small advancement that is not optimal but that will advance us in the right direction. For example the passive aggressive algorithm can be thought of as single iteration of DCA where we update each dual variable only once. We suggest that this can be extended by advancing with a step that is made using the joined information of several samples. We choose a set of indices $\mathcal{J} $ to increase using the ${\b same }$ step.
+This problem does not have a closed analytic solution, So we aim to maximize the dual function iterativly. One way of solving this is using \textit{dual coordinate ascent} (DCA) on all the $k_t$ samples. DCA will make iteration until convergence. However as noticed by ...,  we can also make a small advancement that is not optimal but that will advance us in the right direction. For example the passive aggressive algorithm can be thought of as single iteration of DCA where we update each dual variable only once. We suggest that this can be extended by advancing with a step that is made using the joined information of several samples. We choose a set of indices $\mathcal{J} $ to increase using the \textbf{ same } step.
 
 \[ \alpha_j = \alpha_j + \tau , \;\; j \in \mathcal{J} \]
 We derive the following $\tau$
