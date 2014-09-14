@@ -8,11 +8,6 @@ Created on Mon Sep  8 10:49:14 2014
 from __future__ import division
 import numpy as np
 import matplotlib.pyplot as plt
-import random
-import multi_step_passive_aggressive
-import passive_aggressive_varients
-import onlineClassifiers
-import scipy.stats as stats
 
 
 import numpy as np
@@ -33,8 +28,9 @@ if __name__ == '__main__':
     
     num_folds = 5
     
-    pa_alg_parms = {'C':[0.1,1,10], 'repeat' : [500], 'seed' :[0] }
-    algs = [{'name':'pairedPA', 'alg': pairedPAClassifiers.pairedPA, 'parameters' : dict( {'early_stopping' : [10]}.items() + pa_alg_parms.items() ) },
+    pa_alg_parms = {'C':[0.001,0.01,0.1,1,10], 'repeat' : [50000], 'seed' :[42] }
+    algs = [{'name':'pairedPA1', 'alg': pairedPAClassifiers.pairedPA, 'parameters' : dict( {'early_stopping' : [1]}.items() + pa_alg_parms.items() ) },
+            #{'name':'pairedPA10', 'alg': pairedPAClassifiers.pairedPA, 'parameters' : dict( {'early_stopping' : [10]}.items() + pa_alg_parms.items() ) },
             {'name':'classicPA', 'alg': pairedPAClassifiers.classicPA, 'parameters' : pa_alg_parms },
             {'name':'aucPA', 'alg': pairedPAClassifiers.aucPA, 'parameters' : pa_alg_parms },
             ]
@@ -78,16 +74,17 @@ if __name__ == '__main__':
             alg = algo['alg']()
             parameters = algo['parameters']
     
-            clf = grid_search.GridSearchCV(alg, parameters, cv=validationCV, scoring= balancedAccuracy )
-            print('running grid search...\n')
+            print('running %s (%d):  ' %(algo['name'],i) ) 
+            clf = grid_search.GridSearchCV(alg, parameters, cv=validationCV, scoring= balancedAccuracy, n_jobs=-1)
             clf.fit(X_train, y_train)
-            
+
+                   
             clf.score(X_test, y_test)
             y_predictions = clf.best_estimator_.predict(X_test)
-            results_auc[ algo['alg'] ][i] = metrics.roc_auc_score(y_test, clf.best_estimator_.decision_function(X_test))
             results_accuracy[ algo['alg'] ][i] = metrics.accuracy_score(y_test, y_predictions)
+            results_auc[ algo['alg'] ][i] = metrics.roc_auc_score(y_test, clf.best_estimator_.decision_function(X_test))
             results_balanced[ algo['alg'] ][i] = balancedAccuracy(clf.best_estimator_, X_test, y_test)
-                               
+            print('\t%s  \t\t  ( %g, %g, %g)' %(clf.best_params_, results_accuracy[ algo['alg'] ][i], results_auc[ algo['alg'] ][i], results_balanced[ algo['alg'] ][i]) )                        
         i = i +1
         
     for algo in algs:
