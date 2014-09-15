@@ -45,6 +45,74 @@ class basePA(sklearn.base.BaseEstimator):
         return predictions
 
 
+    def dca_with_memory(self, X, Y, C, w_memory, early_stopping = np.Inf, minimum_gap = np.power(10.0,-14) ,balanced = False):
+        
+        m, d = X.shape;  # updated number of examples
+        pos_indcies = Y>0
+        neg_indcies = Y<0
+        num_pos = np.count_nonzero(pos_indcies)
+        num_neg = np.count_nonzero(neg_indcies)
+        if balanced == 'problem':
+            samples_C = np.ndarray( (m,1) )
+            samples_C[pos_indcies] = C / num_pos
+            samples_C[neg_indcies] = C / num_neg
+        elif balanced == 'samples':
+            X_new = np.ndarray( (m,d) )
+            X_new[pos_indcies,:] = X[pos_indcies,:]  / num_pos
+            X_new[neg_indcies,:] = X[neg_indcies,:]  / num_neg
+            X = X_new
+            samples_C = C * np.ones( m )
+        else:
+            samples_C = C * np.ones( m )
+    
+        # init w as the w from the former steps 
+        w = w_memory
+        M = 0; # counts mistakes
+    
+    
+        # Support vector machines
+        alpha = np.zeros((m,))
+    #    losses = np.zeros((m,))
+        memory_losses = np.zeros((m,))
+        
+        for i in range(0,m):
+                memory_losses[i] = 1.0- Y[i]*np.dot(w, X[i,:])
+            
+        #primal = 0.5*np.dot(w, w) + C* np.sum( 1 - 0.5*np.dot(w_memory, w_memory)
+        t = 0
+        dual_diff = np.Inf
+        dual = np.sum(alpha) -0.5*np.dot(w , w) + 0.5*np.dot(w_memory, w_memory)
+        
+        
+        while t < early_stopping and dual_diff > minimum_gap:
+            for i in range(0,m):
+                # predict
+                Yhat = np.sign(np.dot(w, X[i,:]))
+
+                loss = 1.0- Y[i]*np.dot(w , X[i,:])
+                if loss > 0.0:
+                    M = M + 1
+                    # update w
+                    tau = min(samples_C[i]-alpha[i], max([-alpha[i], loss/np.dot(X[i,:], X[i,:])]))
+                    alpha[i] = alpha[i] + tau 
+                    w = w + tau*Y[i]* X[i,:]
+                    
+            t = t +1
+    
+            dual_new = np.sum(alpha) -0.5*np.dot(w , w) + 0.5*np.dot(w_memory, w_memory)
+            tmp = np.prod([alpha, memory_losses], 0)
+            dual_new2 = np.sum(tmp) -0.5*np.dot(w + w_memory , w + w_memory) 
+            dual_diff = np.abs(dual_new - dual)
+    #        print('dual step differance:%g\n' % dual_diff)
+            dual = dual_new
+      
+    #        losses = np.zeros((m,))
+    #        for i in range(0,m):
+    #            losses[i] = max([0 , 1.0- Y[i]*np.dot(w, X[i,:]) ])
+    #        
+    #        primal = 0.5*np.dot(w - w_memory, w - w_memory) + C* np.sum( losses)
+    #        print('dual gap:%g\n' % (primal - dual) )
+        return w
 
 class classicPA(basePA):
      
@@ -163,57 +231,3 @@ class pairedPA(basePA):
                 
         self.w_ = w
         return self
-       
-    def dca_with_memory(self, X, Y, C, w_memory, early_stopping = np.Inf, minimum_gap = np.power(10.0,-14) ):
-        
-        m, d = X.shape;  # updated number of examples
-    
-        # init w as the w from the former steps 
-        w = w_memory
-        M = 0; # counts mistakes
-    
-    
-        # Support vector machines
-        alpha = np.zeros((m,))
-    #    losses = np.zeros((m,))
-        memory_losses = np.zeros((m,))
-        
-        for i in range(0,m):
-                memory_losses[i] = 1.0- Y[i]*np.dot(w, X[i,:])
-            
-        #primal = 0.5*np.dot(w, w) + C* np.sum( 1 - 0.5*np.dot(w_memory, w_memory)
-        t = 0
-        dual_diff = np.Inf
-        dual = np.sum(alpha) -0.5*np.dot(w , w) + 0.5*np.dot(w_memory, w_memory)
-        
-        
-        while t < early_stopping and dual_diff > minimum_gap:
-            for i in range(0,m):
-                # predict
-                Yhat = np.sign(np.dot(w, X[i,:]))
-                # compute hinge loss
-    #            loss = max([0.0, 1.0- Y[i]*np.dot(w , X[i,:])])
-                loss = 1.0- Y[i]*np.dot(w , X[i,:])
-                if loss > 0.0:
-                    M = M + 1
-                    # update w
-                    tau = min(C-alpha[i], max([-alpha[i], loss/np.dot(X[i,:], X[i,:])]))
-                    alpha[i] = alpha[i] + tau 
-                    w = w + tau*Y[i]* X[i,:]
-                    
-            t = t +1
-    
-            dual_new = np.sum(alpha) -0.5*np.dot(w , w) + 0.5*np.dot(w_memory, w_memory)
-            tmp = np.prod([alpha, memory_losses], 0)
-            dual_new2 = np.sum(tmp) -0.5*np.dot(w + w_memory , w + w_memory) 
-            dual_diff = np.abs(dual_new - dual)
-    #        print('dual step differance:%g\n' % dual_diff)
-            dual = dual_new
-      
-    #        losses = np.zeros((m,))
-    #        for i in range(0,m):
-    #            losses[i] = max([0 , 1.0- Y[i]*np.dot(w, X[i,:]) ])
-    #        
-    #        primal = 0.5*np.dot(w - w_memory, w - w_memory) + C* np.sum( losses)
-    #        print('dual gap:%g\n' % (primal - dual) )
-        return w

@@ -15,25 +15,27 @@ from sklearn import cross_validation
 from sklearn.cross_validation import StratifiedKFold
 from sklearn import svm, grid_search, datasets, metrics, linear_model
 
-
-import pairedPAClassifiers
+import predictionMetrics
+import pairedPABinaryClassifiers
+import multiClassPaPa
 # Generate data, run cross validation with hyperparms tuning
 
-def balancedAccuracy(estimator, X, y_true):
-    y_pred = estimator.predict(X)
-    pos = y_true > 0
-    return  0.5 * metrics.accuracy_score( y_true[pos], y_pred[pos]) + 0.5 * metrics.accuracy_score( y_true[~pos], y_pred[~pos])
-   
 if __name__ == '__main__':
     
     num_folds = 5
     
-    pa_alg_parms = {'C':[0.001,0.01,0.1,1,10], 'repeat' : [50000], 'seed' :[42] }
-    algs = [{'name':'pairedPA1', 'alg': pairedPAClassifiers.pairedPA, 'parameters' : dict( {'early_stopping' : [1]}.items() + pa_alg_parms.items() ) },
-            #{'name':'pairedPA10', 'alg': pairedPAClassifiers.pairedPA, 'parameters' : dict( {'early_stopping' : [10]}.items() + pa_alg_parms.items() ) },
-            {'name':'classicPA', 'alg': pairedPAClassifiers.classicPA, 'parameters' : pa_alg_parms },
-            {'name':'aucPA', 'alg': pairedPAClassifiers.aucPA, 'parameters' : pa_alg_parms },
+    pa_alg_parms = {'C':[0.01,0.1,1,10], 'repeat' : [5000], 'seed' :[0] }
+    algs = [{'name':'pairedPA1', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [1], 'balanced_weight' : ['samples','problem',None]}.items() + pa_alg_parms.items() )},
+            {'name':'pairedPA10', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [10], 'balanced_weight' : ['samples','problem',None]}.items() + pa_alg_parms.items() ) },
+            {'name':'classicPA', 'alg': multiClassPaPa.oneVsAllClassicPA, 'parameters' : pa_alg_parms },
+            {'name':'aucPA', 'alg': multiClassPaPa.oneVsAllAucPA, 'parameters' : pa_alg_parms },
             ]
+    
+#     algs = [{'name':'pairedPA1', 'alg': pairedPABinaryClassifiers.pairedPA, 'parameters' : dict( {'early_stopping' : [1]}.items() + pa_alg_parms.items() ) },
+#         {'name':'pairedPA10', 'alg': pairedPABinaryClassifiers.pairedPA, 'parameters' : dict( {'early_stopping' : [10]}.items() + pa_alg_parms.items() ) },
+#         {'name':'classicPA', 'alg': pairedPABinaryClassifiers.classicPA, 'parameters' : pa_alg_parms },
+#         {'name':'aucPA', 'alg': pairedPABinaryClassifiers.aucPA, 'parameters' : pa_alg_parms },
+#         ]
     
     
     iris = datasets.load_iris()
@@ -43,19 +45,19 @@ if __name__ == '__main__':
     Y_all = np.array(iris.target)
     
     X_all = np.append( X_all, np.ones( (X_all.shape[0] ,1) ),1 )    # add a 1 coulmn for the bias
-    first_class =  Y_all == 1
-    Y_all[ first_class ] = 1
-    Y_all[ ~first_class ] = -1
-    
+#     first_class =  Y_all == 1
+#     Y_all[ first_class ] = 1
+#     Y_all[ ~first_class ] = -1
+#     
     skf = StratifiedKFold(Y_all, num_folds)
     
     results_balanced = {}
     results_auc = {}
     results_accuracy = {}
     for algo in algs:
-        results_balanced[ algo['alg'] ] = np.empty(num_folds) * np.nan
-        results_auc[ algo['alg'] ] = np.empty(num_folds) * np.nan
-        results_accuracy[ algo['alg'] ] = np.empty(num_folds) * np.nan
+        results_balanced[ algo['name'] ] = np.empty(num_folds) * np.nan
+        results_auc[ algo['name'] ] = np.empty(num_folds) * np.nan
+        results_accuracy[ algo['name'] ] = np.empty(num_folds) * np.nan
     
     i = 0
     for train, test in skf:
@@ -75,23 +77,22 @@ if __name__ == '__main__':
             parameters = algo['parameters']
     
             print('running %s (%d):  ' %(algo['name'],i) ) 
-            clf = grid_search.GridSearchCV(alg, parameters, cv=validationCV, scoring= balancedAccuracy, n_jobs=-1)
+            clf = grid_search.GridSearchCV(alg, parameters, cv=validationCV, scoring= predictionMetrics.balancedAccuracy, n_jobs=-2)
             clf.fit(X_train, y_train)
 
-                   
             clf.score(X_test, y_test)
             y_predictions = clf.best_estimator_.predict(X_test)
-            results_accuracy[ algo['alg'] ][i] = metrics.accuracy_score(y_test, y_predictions)
-            results_auc[ algo['alg'] ][i] = metrics.roc_auc_score(y_test, clf.best_estimator_.decision_function(X_test))
-            results_balanced[ algo['alg'] ][i] = balancedAccuracy(clf.best_estimator_, X_test, y_test)
-            print('\t%s  \t\t  ( %g, %g, %g)' %(clf.best_params_, results_accuracy[ algo['alg'] ][i], results_auc[ algo['alg'] ][i], results_balanced[ algo['alg'] ][i]) )                        
+            results_accuracy[ algo['name'] ][i] = metrics.accuracy_score(y_test, y_predictions)
+            results_auc[ algo['name'] ][i] = predictionMetrics.oneVsAllAUC(clf.best_estimator_, X_test, y_test) 
+            results_balanced[ algo['name'] ][i] = predictionMetrics.balancedAccuracy(clf.best_estimator_, X_test, y_test)
+            print('\t%s  \t\t  ( %g, %g, %g)' %(clf.best_params_, results_accuracy[ algo['name'] ][i], results_auc[ algo['name'] ][i], results_balanced[ algo['name'] ][i]) )                        
         i = i +1
         
     for algo in algs:
         print('===== %s =====' % algo['name'])
-        print('accuracy: %g (%g)' % ( np.mean( results_accuracy[ algo['alg'] ] ), np.std( results_accuracy[ algo['alg'] ] )))
-        print('auc: %g (%g)' % ( np.mean( results_auc[ algo['alg'] ] ), np.std( results_auc[ algo['alg'] ] )))
-        print('balanced acc: %g (%g)' % ( np.mean( results_balanced[ algo['alg'] ] ), np.std( results_balanced[ algo['alg'] ] )))
+        print('accuracy: %g (%g)' % ( np.mean( results_accuracy[ algo['name'] ] ), np.std( results_accuracy[ algo['name'] ] )))
+        print('auc: %g (%g)' % ( np.mean( results_auc[ algo['name'] ] ), np.std( results_auc[ algo['name'] ] )))
+        print('balanced acc: %g (%g)' % ( np.mean( results_balanced[ algo['name'] ] ), np.std( results_balanced[ algo['name'] ] )))
 
 #    X,Y, w_opt = generate_data()
     #%%
