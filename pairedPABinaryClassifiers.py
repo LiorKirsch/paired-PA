@@ -96,7 +96,8 @@ class basePA(sklearn.base.BaseEstimator):
                     tau = min(samples_C[i]-alpha[i], max([-alpha[i], loss/np.dot(X[i,:], X[i,:])]))
                     alpha[i] = alpha[i] + tau 
                     w = w + tau*Y[i]* X[i,:]
-                    
+            
+            print(t)        
             t = t +1
     
             dual_new = np.sum(alpha) -0.5*np.dot(w , w) + 0.5*np.dot(w_memory, w_memory)
