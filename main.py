@@ -70,14 +70,29 @@ def loadDataSet(dataset_name, appendOnesColumn=False):
         
         matfile = 'datasets/20_newsgroups_50Kfeatures.mat'
         mat = scipy.io.loadmat(matfile)
-        X_all = mat['Xtfidf_normalized']
+        X_all =  mat['Xtfidf_normalized'] # matlab default sparse type format is using column wise indexing csc
+        X_all = sparse.csr_matrix(X_all)  # change to csr type of sparse because we access we need access to entire rows
         Y_all = mat['Y'].flatten()   # flatten the (n,1) matrix to a (n,) vector
+        
         if appendOnesColumn:
             ones_column = sparse.csr_matrix( np.ones( (X_all.shape[0] ,1) ) )
             X_all = sparse.hstack( [X_all,ones_column] )
     
     return X_all , Y_all
-    
+
+
+def testMatrix(matrix):
+    import time
+    t = time.time()
+      
+    m, n = matrix.shape
+    for i in range(m):
+        a = 2* matrix[i,:] 
+
+    print('time %s\n' % str(time.time() - t) )
+            
+    return matrix
+        
 if __name__ == '__main__':
     
     num_folds = 5
@@ -97,11 +112,6 @@ if __name__ == '__main__':
     
     
     X_all, Y_all = loadDataSet("20_news_groups", appendOnesColumn=False)
-    
-#     first_class =  Y_all == 1
-#     Y_all[ first_class ] = 1
-#     Y_all[ ~first_class ] = -1
-#     
     skf = StratifiedKFold(Y_all, num_folds)
     
     results_balanced = {}
@@ -130,7 +140,7 @@ if __name__ == '__main__':
             parameters = algo['parameters']
     
             print('running %s (%d):  ' %(algo['name'],i) ) 
-            clf = grid_search.GridSearchCV(alg, parameters, cv=validationCV, scoring= predictionMetrics.balancedAccuracy, n_jobs=-2)
+            clf = grid_search.GridSearchCV(alg, parameters, cv=validationCV, scoring= predictionMetrics.balancedAccuracy)#, n_jobs=-2)
             clf.fit(X_train, y_train)
 
             clf.score(X_test, y_test)

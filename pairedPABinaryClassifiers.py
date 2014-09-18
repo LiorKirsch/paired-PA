@@ -12,6 +12,7 @@ import numpy as np
 import random
 from numpy.linalg import norm
 import sklearn
+from scipy import sparse
 
 class basePA(sklearn.base.BaseEstimator):
   
@@ -57,10 +58,11 @@ class basePA(sklearn.base.BaseEstimator):
             samples_C[pos_indcies] = C / num_pos
             samples_C[neg_indcies] = C / num_neg
         elif balanced == 'samples':
-            X_new = np.ndarray( (m,d) )
-            X_new[pos_indcies,:] = X[pos_indcies,:]  / num_pos
-            X_new[neg_indcies,:] = X[neg_indcies,:]  / num_neg
-            X = X_new
+            balanced_weights = np.ones(m)
+            balanced_weights[pos_indcies] = balanced_weights[pos_indcies]  / num_pos
+            balanced_weights[neg_indcies] = balanced_weights[neg_indcies]  / num_neg
+            
+            X =  sparse.dia_matrix( (balanced_weights, 0) , shape=(m, m)) * X
             samples_C = C * np.ones( m )
         else:
             samples_C = C * np.ones( m )
@@ -76,7 +78,7 @@ class basePA(sklearn.base.BaseEstimator):
         memory_losses = np.zeros((m,))
         
         for i in range(0,m):
-                memory_losses[i] = 1.0- Y[i]*np.dot(w, X[i,:])
+                memory_losses[i] = 1.0- Y[i]*X[i,:].dot(w)
             
         #primal = 0.5*np.dot(w, w) + C* np.sum( 1 - 0.5*np.dot(w_memory, w_memory)
         t = 0
@@ -87,13 +89,13 @@ class basePA(sklearn.base.BaseEstimator):
         while t < early_stopping and dual_diff > minimum_gap:
             for i in range(0,m):
                 # predict
-                Yhat = np.sign(np.dot(w, X[i,:]))
+                Yhat = np.sign(  X[i,:].dot(w))
 
-                loss = 1.0- Y[i]*np.dot(w , X[i,:])
+                loss = 1.0- Y[i]*  X[i,:].dot( w )
                 if loss > 0.0:
                     M = M + 1
                     # update w
-                    tau = min(samples_C[i]-alpha[i], max([-alpha[i], loss/np.dot(X[i,:], X[i,:])]))
+                    tau = min(samples_C[i]-alpha[i], max([-alpha[i], loss/ X[i,:].dot( X[i,:].T )]))
                     alpha[i] = alpha[i] + tau 
                     w = w + tau*Y[i]* X[i,:]
             

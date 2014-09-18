@@ -12,6 +12,8 @@ import numpy as np
 import random
 import sklearn
 import pairedPABinaryClassifiers
+import scipy.sparse as sparse
+
 
 class baseMultiClassPA(pairedPABinaryClassifiers.basePA):
  
@@ -82,19 +84,27 @@ class multiClassPairedPA(baseMultiClassPA):
     
         for t in range(0, self.repeat):
             # choose examples
-            X_at_time_t = np.ndarray( (num_classes,d), np.double )
+            
+            X_at_time_t = []
+                 
             hinge_loss = np.ndarray((num_classes,), np.double)
             for j in range(num_classes):
                 current_X = X_classes[j]
                 example_ind = random.randint(0, X_sizes[j] -1)
-                X_at_time_t[j,:] = current_X[example_ind,:]
-            
+                X_at_time_t.append( current_X[example_ind,:] )
+
+                
+            if X.getformat() == 'csr':
+                X_at_time_t = sparse.vstack( X_at_time_t,  format='csr' )
+            else:
+                X_at_time_t = np.vstack( X_at_time_t )
+          
             # Train a one vs all classifier for each class    
             for j in range(num_classes):
                 Y_at_time_t = -1 * np.ones( num_classes ) 
                 Y_at_time_t[j] = 1
                 
-                hinge_loss = 1.0 - Y_at_time_t * np.dot(X_at_time_t , w[:,j]) 
+                hinge_loss = 1.0 - Y_at_time_t * X_at_time_t.dot( w[:,j] ) 
                 hinge_loss[ hinge_loss < 0.0] = 0.0
                 
                   
