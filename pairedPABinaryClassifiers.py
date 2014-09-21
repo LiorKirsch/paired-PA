@@ -24,7 +24,7 @@ class basePA(sklearn.base.BaseEstimator):
         self.classes_ = None
   
     def decision_function(self,X):
-        return np.dot(X, self.w_)
+        return X.dot( self.w_.transpose())
     
 #     def predict_proba(self,X):
 #         n_samples,d = X.shape;
@@ -46,7 +46,7 @@ class basePA(sklearn.base.BaseEstimator):
         return predictions
 
 
-    def dca_with_memory(self, X, Y, C, w_memory, early_stopping = np.Inf, minimum_gap = np.power(10.0,-14) ,balanced = False):
+    def dca_with_memory(self, X, Y, C, w_memory, early_stopping = np.Inf, minimum_gap = np.power(10.0,-14) ,balanced = False, X_norm = None):
         
         m, d = X.shape;  # updated number of examples
         pos_indcies = Y>0
@@ -74,47 +74,29 @@ class basePA(sklearn.base.BaseEstimator):
     
         # Support vector machines
         alpha = np.zeros((m,))
-    #    losses = np.zeros((m,))
-        memory_losses = np.zeros((m,))
-        
-        for i in range(0,m):
-                memory_losses[i] = 1.0- Y[i]*X[i,:].dot(w)
-            
-        #primal = 0.5*np.dot(w, w) + C* np.sum( 1 - 0.5*np.dot(w_memory, w_memory)
         t = 0
-        dual_diff = np.Inf
-        dual = np.sum(alpha) -0.5*np.dot(w , w) + 0.5*np.dot(w_memory, w_memory)
         
-        
-        while t < early_stopping and dual_diff > minimum_gap:
+        while t < early_stopping :
             for i in range(0,m):
+                current_X = X[i,:]
                 # predict
-                Yhat = np.sign(  X[i,:].dot(w))
-
-                loss = 1.0- Y[i]*  X[i,:].dot( w )
+                prediction = (  current_X.dot(w.T) )
+                
+                loss = 1.0- Y[i]*  prediction
                 if loss > 0.0:
                     M = M + 1
                     # update w
-                    tau = min(samples_C[i]-alpha[i], max([-alpha[i], loss/ X[i,:].dot( X[i,:].T )]))
+                    if X_norm is None:
+                        current_x_norm = (current_X.data**2).sum()
+                    else:
+                        current_x_norm = X_norm[i]
+                          
+                    tau = min(samples_C[i]-alpha[i], max([-alpha[i], loss/ current_x_norm]))
                     alpha[i] = alpha[i] + tau 
-                    w = w + tau*Y[i]* X[i,:]
+                    w = w + tau*Y[i]* current_X
             
-            print(t)        
             t = t +1
     
-            dual_new = np.sum(alpha) -0.5*np.dot(w , w) + 0.5*np.dot(w_memory, w_memory)
-            tmp = np.prod([alpha, memory_losses], 0)
-            dual_new2 = np.sum(tmp) -0.5*np.dot(w + w_memory , w + w_memory) 
-            dual_diff = np.abs(dual_new - dual)
-    #        print('dual step differance:%g\n' % dual_diff)
-            dual = dual_new
-      
-    #        losses = np.zeros((m,))
-    #        for i in range(0,m):
-    #            losses[i] = max([0 , 1.0- Y[i]*np.dot(w, X[i,:]) ])
-    #        
-    #        primal = 0.5*np.dot(w - w_memory, w - w_memory) + C* np.sum( losses)
-    #        print('dual gap:%g\n' % (primal - dual) )
         return w
 
 class classicPA(basePA):
@@ -134,15 +116,20 @@ class classicPA(basePA):
         for t in range(0, self.repeat):
             # choose example
             i = random.randint(0,m-1)
+            current_X = X[i,:]
             # predict
-            Yhat = np.sign(np.dot(w, X[i,:]))
+            Yhat = np.sign( current_X.dot(w.T) )
             # compute hinge loss
-            loss = max([0.0, 1.0- Y[i]*np.dot(w, X[i,:])])
+            loss = max([0.0, 1.0- Y[i]* current_X.dot(w.T) ])
             if loss > 0.0:
                 M = M + 1
                 # update w
-                tau = min(self.C , loss/np.dot(X[i,:], X[i,:]) )
-                w = w + tau*Y[i]* X[i,:]
+                try:
+                    x_norm = (current_X.data**2).sum()
+                except:
+                    x_norm = current_X.dot(current_X)
+                tau = min(self.C , loss/x_norm)
+                w = w + tau*Y[i]* current_X
 
         self.w_ = w
         return self
@@ -176,13 +163,18 @@ class aucPA(basePA):
             
             X_diff = X_pos[i_pos,:] - X_neg[i_neg,:]
             # predict
-            Yhat = np.sign(np.dot(w, X_diff))
+            Yhat = np.sign( X_diff.dot(w.T) )
             # compute hinge loss
-            loss = max([0.0, 1.0 - np.dot(w, X_diff )])
+            loss = max([0.0, 1.0 - X_diff.dot(w.T) ])
             if loss > 0.0:
                 M = M + 1
                 # update w
-                tau = min(self.C , loss/np.dot(X_diff, X_diff ) )
+                try:
+                    X_diff_norm = (X_diff.data**2).sum()
+                except:
+                    X_diff_norm = X_diff.dot(X_diff)
+                    
+                tau = min(self.C , loss/X_diff_norm )
                 w = w + tau* X_diff
         
         self.w_ = w

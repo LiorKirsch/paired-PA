@@ -78,31 +78,21 @@ def loadDataSet(dataset_name, appendOnesColumn=False):
             ones_column = sparse.csr_matrix( np.ones( (X_all.shape[0] ,1) ) )
             X_all = sparse.hstack( [X_all,ones_column] )
     
+    samples_classes = np.unique(Y_all) 
+    print('loaded %s: %d sample, %d features, %d classes' % (dataset_name, X_all.shape[0], X_all.shape[1] , len(samples_classes) ))
     return X_all , Y_all
 
 
-def testMatrix(matrix):
-    import time
-    t = time.time()
-      
-    m, n = matrix.shape
-    for i in range(m):
-        a = 2* matrix[i,:] 
-
-    print('time %s\n' % str(time.time() - t) )
-            
-    return matrix
-        
 if __name__ == '__main__':
     
     num_folds = 5
     
-    pa_alg_parms = {'C':[0.01,0.1,1,10], 'repeat' : [5000], 'seed' :[0] }
-    algs = [{'name':'pairedPA1', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [1], 'balanced_weight' : ['samples','problem',None]}.items() + pa_alg_parms.items() )},
+    pa_alg_parms = {'C':[0.01,0.1,1,10], 'repeat' : [500], 'seed' :[0] }
+    algs = [{'name':'pairedPA1', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [1], 'balanced_weight' : [None]}.items() + pa_alg_parms.items() )},
             {'name':'pairedPA10', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [10], 'balanced_weight' : ['samples','problem',None]}.items() + pa_alg_parms.items() ) },
             {'name':'classicPA', 'alg': multiClassPaPa.oneVsAllClassicPA, 'parameters' : pa_alg_parms },
             {'name':'aucPA', 'alg': multiClassPaPa.oneVsAllAucPA, 'parameters' : pa_alg_parms },
-            ]
+           ]
     
 #     algs = [{'name':'pairedPA1', 'alg': pairedPABinaryClassifiers.pairedPA, 'parameters' : dict( {'early_stopping' : [1]}.items() + pa_alg_parms.items() ) },
 #         {'name':'pairedPA10', 'alg': pairedPABinaryClassifiers.pairedPA, 'parameters' : dict( {'early_stopping' : [10]}.items() + pa_alg_parms.items() ) },
@@ -132,6 +122,10 @@ if __name__ == '__main__':
 
         validationCV = StratifiedKFold(y_train, num_folds)
         
+#         # Test
+#         tmp = multiClassPaPa.multiClassPairedPA( C=1, repeat= 500, seed = 0,early_stopping = 1, balanced_weight ='samples')
+#         tmp.fit(X_train, y_train)
+        
         for algo in algs:
             #alg = linear_model.PassiveAggressiveClassifier()
             #alg = svm.SVC()
@@ -140,7 +134,7 @@ if __name__ == '__main__':
             parameters = algo['parameters']
     
             print('running %s (%d):  ' %(algo['name'],i) ) 
-            clf = grid_search.GridSearchCV(alg, parameters, cv=validationCV, scoring= predictionMetrics.balancedAccuracy)#, n_jobs=-2)
+            clf = grid_search.GridSearchCV(alg, parameters, cv=validationCV, scoring= predictionMetrics.balancedAccuracy, n_jobs=-2)
             clf.fit(X_train, y_train)
 
             clf.score(X_test, y_test)
