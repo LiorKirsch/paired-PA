@@ -45,7 +45,7 @@ class basePA(sklearn.base.BaseEstimator):
         predictions[ ~postive_predictions ] = -1
         return predictions
 
-
+    @profile
     def dca_with_memory(self, X, Y, C, w_memory, early_stopping = np.Inf, minimum_gap = np.power(10.0,-14) ,balanced = False, X_norm = None):
         
         m, d = X.shape;  # updated number of examples
@@ -80,7 +80,9 @@ class basePA(sklearn.base.BaseEstimator):
             for i in range(0,m):
                 current_X = X[i,:]
                 # predict
-                prediction = (  current_X.dot(w.T) )
+                prediction = current_X.dot(w.T)
+#                 prediction = prediction.todense()
+                prediction = prediction.item()
                 
                 loss = 1.0- Y[i]*  prediction
                 if loss > 0.0:
@@ -93,7 +95,9 @@ class basePA(sklearn.base.BaseEstimator):
                           
                     tau = min(samples_C[i]-alpha[i], max([-alpha[i], loss/ current_x_norm]))
                     alpha[i] = alpha[i] + tau 
-                    w = w + tau*Y[i]* current_X
+#                     w1 = w + tau*Y[i]* current_X
+                    w[ 0,current_X.nonzero()[1] ] +=  tau*Y[i]*current_X.data
+                    
             
             t = t +1
     
@@ -162,17 +166,20 @@ class aucPA(basePA):
             i_neg = random.randint(0,n_neg-1)
             
             X_diff = X_pos[i_pos,:] - X_neg[i_neg,:]
+            
+            try:  
+                X_diff_norm = (X_diff.data**2).sum()
+            except:
+                X_diff_norm = X_diff.dot(X_diff)
+                
             # predict
             Yhat = np.sign( X_diff.dot(w.T) )
             # compute hinge loss
             loss = max([0.0, 1.0 - X_diff.dot(w.T) ])
-            if loss > 0.0:
+            if loss > 0.0 and X_diff_norm > 0.0:
                 M = M + 1
                 # update w
-                try:
-                    X_diff_norm = (X_diff.data**2).sum()
-                except:
-                    X_diff_norm = X_diff.dot(X_diff)
+              
                     
                 tau = min(self.C , loss/X_diff_norm )
                 w = w + tau* X_diff

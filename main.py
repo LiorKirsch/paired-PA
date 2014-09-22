@@ -22,7 +22,6 @@ import multiClassPaPa
 import scipy.io
 import scipy.sparse as sparse
 
-
 def loadDataSet(dataset_name, appendOnesColumn=False):
     
     if dataset_name == "iris":
@@ -87,9 +86,9 @@ if __name__ == '__main__':
     
     num_folds = 5
     
-    pa_alg_parms = {'C':[0.01,0.1,1,10], 'repeat' : [500], 'seed' :[0] }
+    pa_alg_parms = {'C':[0.01,0.1,1,10], 'repeat' : [5000], 'seed' :[0] }
     algs = [{'name':'pairedPA1', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [1], 'balanced_weight' : [None]}.items() + pa_alg_parms.items() )},
-            {'name':'pairedPA10', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [10], 'balanced_weight' : ['samples','problem',None]}.items() + pa_alg_parms.items() ) },
+#             {'name':'pairedPA10', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [10], 'balanced_weight' : ['samples','problem',None]}.items() + pa_alg_parms.items() ) },
             {'name':'classicPA', 'alg': multiClassPaPa.oneVsAllClassicPA, 'parameters' : pa_alg_parms },
             {'name':'aucPA', 'alg': multiClassPaPa.oneVsAllAucPA, 'parameters' : pa_alg_parms },
            ]
@@ -123,8 +122,8 @@ if __name__ == '__main__':
         validationCV = StratifiedKFold(y_train, num_folds)
         
 #         # Test
-#         tmp = multiClassPaPa.multiClassPairedPA( C=1, repeat= 500, seed = 0,early_stopping = 1, balanced_weight ='samples')
-#         tmp.fit(X_train, y_train)
+        tmp = multiClassPaPa.multiClassPairedPA( C=1, repeat= 500, seed = 0,early_stopping = 1, balanced_weight ='samples')
+        tmp.fit(X_train, y_train)
         
         for algo in algs:
             #alg = linear_model.PassiveAggressiveClassifier()
@@ -134,7 +133,7 @@ if __name__ == '__main__':
             parameters = algo['parameters']
     
             print('running %s (%d):  ' %(algo['name'],i) ) 
-            clf = grid_search.GridSearchCV(alg, parameters, cv=validationCV, scoring= predictionMetrics.balancedAccuracy, n_jobs=-2)
+            clf = grid_search.GridSearchCV(alg, parameters, cv=validationCV, scoring= predictionMetrics.balancedAccuracy)#, n_jobs=-2)
             clf.fit(X_train, y_train)
 
             clf.score(X_test, y_test)

@@ -91,10 +91,14 @@ class multiClassPairedPA(baseMultiClassPA):
         
         # weight vector for each class ( num_features, num_classes)
         w = np.zeros((num_classes,d))
+        w = [None]*num_classes
+        for j in range(num_classes):
+            w[j] = sparse.csr_matrix((1,d) )
+            w[j] = np.zeros((1,d))
 
         for t in range(0, self.repeat):
             # choose examples
-#             print(t)     
+            print(t)     
             hinge_loss = np.ndarray((num_classes,), np.double)
             example_ind = np.ndarray( (num_classes), np.int64 )
             for j in range(num_classes):
@@ -119,17 +123,16 @@ class multiClassPairedPA(baseMultiClassPA):
                 Y_at_time_t = -1 * np.ones( num_classes ) 
                 Y_at_time_t[j] = 1
                 
-                hinge_loss = 1.0 - Y_at_time_t * X_at_time_t.dot( w[j,:] ) 
-                hinge_loss[ hinge_loss < 0.0] = 0.0
-                
+                classifier_score =  (X_at_time_t.dot( w[j].T )).flatten() 
+                classifier_score = np.multiply(Y_at_time_t ,classifier_score  )
                   
-                if np.any(hinge_loss > 0.0 ):
+                if np.any( classifier_score < 1.0 ):
                     # if any of the samples has an error in classification
                     # solve a mini problem with the samples
-#                     w[j,:] = self.dca_with_memory(X_at_time_t, Y_at_time_t, self.C , w[j,:] ,early_stopping = self.early_stopping, balanced=self.balanced_weight,X_norm = X_norms_squared_time_t)
-                    passive = sklearn.linear_model.PassiveAggressiveClassifier(C=self.C)
-                    passive.fit(X_at_time_t, Y_at_time_t, coef_init=w[j,:])
-                    w[j,:] = passive.coef_
+                    w[j] = self.dca_with_memory(X_at_time_t, Y_at_time_t, self.C , w[j] ,early_stopping = self.early_stopping, balanced=self.balanced_weight,X_norm = X_norms_squared_time_t)
+#                     passive = sklearn.linear_model.PassiveAggressiveClassifier(C=self.C, n_iter=1)
+#                     passive.fit(X_at_time_t, Y_at_time_t, coef_init=w[j])
+#                     w[j] = passive.coef_
                 
         self.w_ = w
         return self
