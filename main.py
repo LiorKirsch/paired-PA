@@ -86,8 +86,8 @@ if __name__ == '__main__':
     
     num_folds = 5
     
-    pa_alg_parms = {'C':[0.01,0.1,1,10], 'repeat' : [5000], 'seed' :[0] }
-    algs = [{'name':'pairedPA1', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [1], 'balanced_weight' : [None]}.items() + pa_alg_parms.items() )},
+    pa_alg_parms = {'C':[0.01,0.1,1,10], 'repeat' : [50], 'seed' :[0] }
+    algs = [#{'name':'pairedPA1', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [1], 'balanced_weight' : [None]}.items() + pa_alg_parms.items() )},
 #             {'name':'pairedPA10', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [10], 'balanced_weight' : ['samples','problem',None]}.items() + pa_alg_parms.items() ) },
             {'name':'classicPA', 'alg': multiClassPaPa.oneVsAllClassicPA, 'parameters' : pa_alg_parms },
             {'name':'aucPA', 'alg': multiClassPaPa.oneVsAllAucPA, 'parameters' : pa_alg_parms },
@@ -122,8 +122,9 @@ if __name__ == '__main__':
         validationCV = StratifiedKFold(y_train, num_folds)
         
 #         # Test
-        tmp = multiClassPaPa.multiClassPairedPA( C=1, repeat= 500, seed = 0,early_stopping = 1, balanced_weight ='samples')
-        tmp.fit(X_train, y_train)
+#         tmp = multiClassPaPa.oneVsAllClassicPA( C=1, repeat= 5000, seed = 0)
+#         tmp = multiClassPaPa.multiClassPairedPA( C=1, repeat= 500, seed = 0,early_stopping = 1, balanced_weight ='samples')
+#         tmp.fit(X_train, y_train, track_every_n_steps = 100)
         
         for algo in algs:
             #alg = linear_model.PassiveAggressiveClassifier()
@@ -133,14 +134,16 @@ if __name__ == '__main__':
             parameters = algo['parameters']
     
             print('running %s (%d):  ' %(algo['name'],i) ) 
-            clf = grid_search.GridSearchCV(alg, parameters, cv=validationCV, scoring= predictionMetrics.balancedAccuracy)#, n_jobs=-2)
+            clf = grid_search.GridSearchCV(alg, parameters, cv=validationCV, scoring= predictionMetrics.balancedAccuracy, refit=False)#, n_jobs=-2)
             clf.fit(X_train, y_train)
-
-            clf.score(X_test, y_test)
-            y_predictions = clf.best_estimator_.predict(X_test)
+            
+            best_estimator = algo['alg'](**clf.best_params_)
+            best_estimator.fit(X_train, y_train, track_every_n_steps = 20)
+            y_predictions = best_estimator.predict(X_test)
+            
             results_accuracy[ algo['name'] ][i] = metrics.accuracy_score(y_test, y_predictions)
-            results_auc[ algo['name'] ][i] = predictionMetrics.oneVsAllAUC(clf.best_estimator_, X_test, y_test) 
-            results_balanced[ algo['name'] ][i] = predictionMetrics.balancedAccuracy(clf.best_estimator_, X_test, y_test)
+            results_auc[ algo['name'] ][i] = predictionMetrics.oneVsAllAUC(best_estimator, X_test, y_test) 
+            results_balanced[ algo['name'] ][i] = predictionMetrics.balancedAccuracy(best_estimator, X_test, y_test)
             print('\t%s  \t\t  ( %g, %g, %g)' %(clf.best_params_, results_accuracy[ algo['name'] ][i], results_auc[ algo['name'] ][i], results_balanced[ algo['name'] ][i]) )                        
         i = i +1
         

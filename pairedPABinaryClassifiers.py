@@ -21,8 +21,19 @@ class basePA(sklearn.base.BaseEstimator):
         self.seed = seed
         self.C = C
         self.w_ = None
+        self.w_mean_ = None
         self.classes_ = None
-  
+        self.w_progress_ = []
+        self.w_progress_mean_ = []
+        
+        
+    def check_tracking(self,t,track_every_n_steps,w, w_mean):
+        if (not track_every_n_steps == 0) and (t % track_every_n_steps == 1):
+            self.w_progress_.append(w)
+            self.w_progress_mean_.append(w_mean)
+          
+            
+            
     def decision_function(self,X):
         return X.dot( self.w_.transpose())
     
@@ -45,7 +56,6 @@ class basePA(sklearn.base.BaseEstimator):
         predictions[ ~postive_predictions ] = -1
         return predictions
 
-    @profile
     def dca_with_memory(self, X, Y, C, w_memory, early_stopping = np.Inf, minimum_gap = np.power(10.0,-14) ,balanced = False, X_norm = None):
         
         m, d = X.shape;  # updated number of examples
@@ -78,7 +88,7 @@ class basePA(sklearn.base.BaseEstimator):
         
         while t < early_stopping :
             for i in range(0,m):
-                current_X = X[i,:]
+                current_X = X.getrow(i)
                 # predict
                 prediction = current_X.dot(w.T)
 #                 prediction = prediction.todense()
@@ -95,7 +105,7 @@ class basePA(sklearn.base.BaseEstimator):
                           
                     tau = min(samples_C[i]-alpha[i], max([-alpha[i], loss/ current_x_norm]))
                     alpha[i] = alpha[i] + tau 
-#                     w1 = w + tau*Y[i]* current_X
+                    w1 = w + tau*Y[i]* current_X
                     w[ 0,current_X.nonzero()[1] ] +=  tau*Y[i]*current_X.data
                     
             
@@ -104,20 +114,22 @@ class basePA(sklearn.base.BaseEstimator):
         return w
 
 class classicPA(basePA):
-     
-    def fit(self, X, Y):
+    
+    def fit(self, X, Y, track_every_n_steps = 0):
         self.classes_, Y = np.unique(Y, return_inverse=True) # transforms the classes into indices
         Y = 2*Y -1  # transform  (0,1) to (-1,1)
         
         random.seed(self.seed)     
         m, d = X.shape;  # updated number of examples
-        
+        print(m)
         # weight vector
         w = np.zeros((d,));
+        w_mean = np.zeros((d,));
         M = 0; # counts mistakes
     
         # Passive aggressive
         for t in range(0, self.repeat):
+#             print(t)
             # choose example
             i = random.randint(0,m-1)
             current_X = X[i,:]
@@ -134,13 +146,17 @@ class classicPA(basePA):
                     x_norm = current_X.dot(current_X)
                 tau = min(self.C , loss/x_norm)
                 w = w + tau*Y[i]* current_X
-
+            
+            w_mean = (w_mean * (t) + w ) / (t+1)
+            self.check_tracking(t,track_every_n_steps,w,w_mean)
+                
         self.w_ = w
+        self.w_mean_ = w_mean
         return self
 
 
 class aucPA(basePA):
-    def fit(self, X, Y):
+    def fit(self, X, Y, track_every_n_steps = 0):
         
         self.classes_, Y = np.unique(Y, return_inverse=True) # transforms the classes into indices
         Y = 2*Y -1  # transform  (0,1) to (-1,1)
@@ -154,6 +170,7 @@ class aucPA(basePA):
         
         # weight vector
         w = np.zeros((d,));
+        w_mean = np.zeros((d,));
         M = 0; # counts mistakes
     
         # Every step choose a positive and a negative sample, 
@@ -183,8 +200,12 @@ class aucPA(basePA):
                     
                 tau = min(self.C , loss/X_diff_norm )
                 w = w + tau* X_diff
-        
+            
+            w_mean = (w_mean * (t) + w ) / (t+1)
+            self.check_tracking(t,track_every_n_steps,w,w_mean)
+            
         self.w_ = w
+        self.w_mean_ = w_mean
         return self
  
     

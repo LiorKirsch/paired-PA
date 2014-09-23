@@ -23,7 +23,7 @@ class baseMultiClassPA(pairedPABinaryClassifiers.basePA):
 
 
 class oneVsAllClassifier(baseMultiClassPA):
-    def _fit(self, binary_classifier, X, Y):
+    def _fit(self, binary_classifier, X, Y, **kwags):
         num_samples, d = X.shape
         
         # transforms the classes into indices
@@ -32,29 +32,35 @@ class oneVsAllClassifier(baseMultiClassPA):
         
         # weight vector for each class ( num_features, num_classes)
         w = np.zeros((num_classes,d))
+        w_mean = np.zeros((num_classes,d))
         
         for j in range(num_classes):
             Y_current = -1 * np.ones( num_samples , np.double)
             Y_current[ Y==j ] = 1.0
             
-            binary_classical_PA = binary_classifier( self.get_params() )
-            binary_classical_PA.fit(X, Y_current)
+            binary_classical_PA = binary_classifier( **self.get_params() )
+            binary_classical_PA.fit(X, Y_current, **kwags)
             w[j,:] = binary_classical_PA.w_
+            w_mean[j,:] = binary_classical_PA.w_mean_
+            
+            self.w_progress_mean_.append( binary_classical_PA.w_progress_mean_ )
+            self.w_progress_.append( binary_classical_PA.w_progress_ )
             
         self.w_ = w
+        self.w_mean_ = w_mean
         return self
     
         
 class oneVsAllClassicPA(oneVsAllClassifier):
-    def fit(self, X, Y):
+    def fit(self, X, Y, **kwags):
         binary_classifier = pairedPABinaryClassifiers.classicPA
-        return self._fit(binary_classifier, X, Y)
+        return self._fit(binary_classifier, X, Y, **kwags)
        
          
 class oneVsAllAucPA(oneVsAllClassifier):
-    def fit(self, X, Y):
+    def fit(self, X, Y, **kwags):
         binary_classifier = pairedPABinaryClassifiers.aucPA
-        return self._fit(binary_classifier, X, Y)
+        return self._fit(binary_classifier, X, Y, **kwags)
                   
              
     
@@ -64,7 +70,8 @@ class multiClassPairedPA(baseMultiClassPA):
         self.early_stopping = early_stopping
         self.balanced_weight = balanced_weight
         baseMultiClassPA.__init__(self, C =C, repeat = repeat, seed =seed)
-        
+    
+
     def fit(self, X, Y):
         # transforms the classes into indices
         self.classes_, Y = np.unique(Y, return_inverse=True) 
@@ -95,10 +102,9 @@ class multiClassPairedPA(baseMultiClassPA):
         for j in range(num_classes):
             w[j] = sparse.csr_matrix((1,d) )
             w[j] = np.zeros((1,d))
-
+        
         for t in range(0, self.repeat):
             # choose examples
-            print(t)     
             hinge_loss = np.ndarray((num_classes,), np.double)
             example_ind = np.ndarray( (num_classes), np.int64 )
             for j in range(num_classes):
@@ -109,15 +115,6 @@ class multiClassPairedPA(baseMultiClassPA):
             X_at_time_t = X[example_ind,:]
             X_norms_squared_time_t = X_norms_squared[example_ind]
 
-#                 
-#             try:
-#                 matrix_sparse_format = X.getformat()
-#                 X_at_time_t = sparse.vstack( X_at_time_t,  format=matrix_sparse_format )
-#             except:
-#                 # X is not sparse use numpy
-#                 X_at_time_t = np.vstack( X_at_time_t )
-                
-#             X_norms_squared_time_t = np.vstack(X_norms_squared_time_t)
             # Train a one vs all classifier for each class    
             for j in range(num_classes):
                 Y_at_time_t = -1 * np.ones( num_classes ) 
@@ -133,6 +130,7 @@ class multiClassPairedPA(baseMultiClassPA):
 #                     passive = sklearn.linear_model.PassiveAggressiveClassifier(C=self.C, n_iter=1)
 #                     passive.fit(X_at_time_t, Y_at_time_t, coef_init=w[j])
 #                     w[j] = passive.coef_
-                
+
+        w = np.vstack(w)
         self.w_ = w
         return self
