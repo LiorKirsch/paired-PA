@@ -8,7 +8,7 @@ Created on Mon Sep  8 10:49:14 2014
 from __future__ import division
 import numpy as np
 import matplotlib.pyplot as plt
-
+import pylab
 
 import numpy as np
 from sklearn import cross_validation
@@ -81,7 +81,16 @@ def loadDataSet(dataset_name, appendOnesColumn=False):
     print('loaded %s: %d sample, %d features, %d classes' % (dataset_name, X_all.shape[0], X_all.shape[1] , len(samples_classes) ))
     return X_all , Y_all
 
-
+def plot_tracking(results, tracking_step,file_name):
+    max_val = len(results) * tracking_step
+    steps = range(0,max_val, tracking_step)
+    fig = plt.figure()
+    plt.plot(steps, results, 'ro')
+    plt.axis([0, max_val, 0, 1])
+    pylab.savefig(file_name)
+    plt.close(fig)
+    
+    
 if __name__ == '__main__':
     
     num_folds = 5
@@ -89,8 +98,9 @@ if __name__ == '__main__':
     pa_alg_parms = {'C':[0.01,0.1,1,10], 'repeat' : [50], 'seed' :[0] }
     algs = [#{'name':'pairedPA1', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [1], 'balanced_weight' : [None]}.items() + pa_alg_parms.items() )},
 #             {'name':'pairedPA10', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [10], 'balanced_weight' : ['samples','problem',None]}.items() + pa_alg_parms.items() ) },
-            {'name':'classicPA', 'alg': multiClassPaPa.oneVsAllClassicPA, 'parameters' : pa_alg_parms },
             {'name':'aucPA', 'alg': multiClassPaPa.oneVsAllAucPA, 'parameters' : pa_alg_parms },
+            {'name':'classicPA', 'alg': multiClassPaPa.oneVsAllClassicPA, 'parameters' : pa_alg_parms },
+            
            ]
     
 #     algs = [{'name':'pairedPA1', 'alg': pairedPABinaryClassifiers.pairedPA, 'parameters' : dict( {'early_stopping' : [1]}.items() + pa_alg_parms.items() ) },
@@ -137,11 +147,25 @@ if __name__ == '__main__':
             clf = grid_search.GridSearchCV(alg, parameters, cv=validationCV, scoring= predictionMetrics.balancedAccuracy, refit=False)#, n_jobs=-2)
             clf.fit(X_train, y_train)
             
+            track_every_n_steps = 20
             best_estimator = algo['alg'](**clf.best_params_)
-            best_estimator.fit(X_train, y_train, track_every_n_steps = 20)
+            best_estimator.fit(X_train, y_train, track_every_n_steps = track_every_n_steps)
             y_predictions = best_estimator.predict(X_test)
             
-            results_accuracy[ algo['name'] ][i] = metrics.accuracy_score(y_test, y_predictions)
+            w_tracking, w_mean_tracking = best_estimator.evaulate_tracking(predictionMetrics.oneVsAllAUC, X_test, y_test)
+            plot_tracking(w_tracking, track_every_n_steps, 'figures/AUC/%s(%d).png' %(algo['name'],i) )
+            plot_tracking(w_mean_tracking, track_every_n_steps, 'figures/AUC/%s(%d).mean.png' %(algo['name'],i) )
+            
+            w_tracking, w_mean_tracking = best_estimator.evaulate_tracking(predictionMetrics.accuracy, X_test, y_test)
+            plot_tracking(w_tracking, track_every_n_steps, 'figures/ACC/%s(%d).png' %(algo['name'],i) )
+            plot_tracking(w_mean_tracking, track_every_n_steps, 'figures/ACC/%s(%d).mean.png' %(algo['name'],i) )
+            
+            w_tracking, w_mean_tracking = best_estimator.evaulate_tracking(predictionMetrics.balancedAccuracy, X_test, y_test)
+            plot_tracking(w_tracking, track_every_n_steps, 'figures/BalancedACC/%s(%d).png' %(algo['name'],i) )
+            plot_tracking(w_mean_tracking, track_every_n_steps, 'figures/BalancedACC/%s(%d).mean.png' %(algo['name'],i) )
+            
+            
+            results_accuracy[ algo['name'] ][i] = predictionMetrics.accuracy(best_estimator, X_test, y_test)
             results_auc[ algo['name'] ][i] = predictionMetrics.oneVsAllAUC(best_estimator, X_test, y_test) 
             results_balanced[ algo['name'] ][i] = predictionMetrics.balancedAccuracy(best_estimator, X_test, y_test)
             print('\t%s  \t\t  ( %g, %g, %g)' %(clf.best_params_, results_accuracy[ algo['name'] ][i], results_auc[ algo['name'] ][i], results_balanced[ algo['name'] ][i]) )                        

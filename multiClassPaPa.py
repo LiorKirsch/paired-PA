@@ -48,6 +48,10 @@ class oneVsAllClassifier(baseMultiClassPA):
             
         self.w_ = w
         self.w_mean_ = w_mean
+        
+        self.w_progress_mean_ = np.hstack(  self.w_progress_mean_ )
+        self.w_progress_ = np.hstack(  self.w_progress_ )
+        
         return self
     
         
@@ -71,9 +75,10 @@ class multiClassPairedPA(baseMultiClassPA):
         self.balanced_weight = balanced_weight
         baseMultiClassPA.__init__(self, C =C, repeat = repeat, seed =seed)
     
-
-    def fit(self, X, Y):
+#     @profile
+    def fit(self, X, Y, track_every_n_steps = 0):
         # transforms the classes into indices
+        print( self.get_params() )
         self.classes_, Y = np.unique(Y, return_inverse=True) 
         num_classes = len(self.classes_)
         num_samples,d = X.shape
@@ -130,7 +135,7 @@ class multiClassPairedPA(baseMultiClassPA):
 #                     passive = sklearn.linear_model.PassiveAggressiveClassifier(C=self.C, n_iter=1)
 #                     passive.fit(X_at_time_t, Y_at_time_t, coef_init=w[j])
 #                     w[j] = passive.coef_
-
+                    
         w = np.vstack(w)
         self.w_ = w
         return self

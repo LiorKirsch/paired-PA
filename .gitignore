@@ -3,3 +3,5 @@
 *.vw
 *.cache
 *.csv
+figures/
+*.lprof

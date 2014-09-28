@@ -7,6 +7,12 @@ Created on Sep 15, 2014
 from sklearn import metrics
 import numpy as np
 
+def accuracy(estimator, X, y_true):
+    
+    y_predictions = estimator.predict(X)
+    return metrics.accuracy_score(y_true, y_predictions)
+
+
 def balancedAccuracy(estimator, X, y_true):
     num_classes = len(estimator.classes_)
     y_pred = estimator.predict(X)
