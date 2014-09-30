@@ -96,7 +96,7 @@ if __name__ == '__main__':
     num_folds = 5
     
     pa_alg_parms = {'C':[0.01,0.1,1,10], 'repeat' : [50], 'seed' :[0] }
-    algs = [#{'name':'pairedPA1', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [1], 'balanced_weight' : [None]}.items() + pa_alg_parms.items() )},
+    algs = [{'name':'pairedPA1', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [1], 'balanced_weight' : [None]}.items() + pa_alg_parms.items() )},
 #             {'name':'pairedPA10', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [10], 'balanced_weight' : ['samples','problem',None]}.items() + pa_alg_parms.items() ) },
             {'name':'aucPA', 'alg': multiClassPaPa.oneVsAllAucPA, 'parameters' : pa_alg_parms },
             {'name':'classicPA', 'alg': multiClassPaPa.oneVsAllClassicPA, 'parameters' : pa_alg_parms },
@@ -144,7 +144,7 @@ if __name__ == '__main__':
             parameters = algo['parameters']
     
             print('running %s (%d):  ' %(algo['name'],i) ) 
-            clf = grid_search.GridSearchCV(alg, parameters, cv=validationCV, scoring= predictionMetrics.balancedAccuracy, refit=False)#, n_jobs=-2)
+            clf = grid_search.GridSearchCV(alg, parameters, cv=validationCV, scoring= predictionMetrics.balancedAccuracy, refit=False, n_jobs=-2)
             clf.fit(X_train, y_train)
             
             track_every_n_steps = 20

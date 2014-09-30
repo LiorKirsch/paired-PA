@@ -130,7 +130,7 @@ class basePA(sklearn.base.BaseEstimator):
                     tau = min(samples_C[i]-alpha[i], max([-alpha[i], loss/ current_x_norm]))
                     alpha[i] = alpha[i] + tau 
 #                     w1 = w + tau*Y[i]* current_X
-                    w[ 0,X_nonzeros ] +=  tau*Y[i]*current_X.data
+                    w[ X_nonzeros ] +=  tau*Y[i]*current_X.data
                     
 #                     flat_w = fast_sparse.update_w(X_nonzeros,current_X.data, flat_w,tau, Y[i])
                     

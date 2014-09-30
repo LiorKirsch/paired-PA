@@ -103,11 +103,13 @@ class multiClassPairedPA(baseMultiClassPA):
         
         # weight vector for each class ( num_features, num_classes)
         w = np.zeros((num_classes,d))
-        w = [None]*num_classes
-        for j in range(num_classes):
-            w[j] = sparse.csr_matrix((1,d) )
-            w[j] = np.zeros((1,d))
-        
+        w_mean = np.zeros((num_classes,d))
+
+#         for j in range(num_classes):
+#             w[j] = sparse.csr_matrix((1,d) )
+#             w[j] = np.zeros((1,d))
+#             w_mean[j] = np.zeros((1,d))
+#         
         for t in range(0, self.repeat):
             # choose examples
             hinge_loss = np.ndarray((num_classes,), np.double)
@@ -135,7 +137,17 @@ class multiClassPairedPA(baseMultiClassPA):
 #                     passive = sklearn.linear_model.PassiveAggressiveClassifier(C=self.C, n_iter=1)
 #                     passive.fit(X_at_time_t, Y_at_time_t, coef_init=w[j])
 #                     w[j] = passive.coef_
-                    
+              
+                w_mean[j] = (w_mean[j] * (t) + w[j] ) / (t+1)  
+                
+            self.check_tracking(t,track_every_n_steps,w,w_mean)
+                  
         w = np.vstack(w)
+        w_mean = np.vstack(w_mean)
         self.w_ = w
+        self.w_mean_ = w_mean
+        
+        if (track_every_n_steps > 0):
+            self.w_progress_mean_ = np.array( self.w_progress_mean_ )
+            self.w_progress_ = np.array( self.w_progress_ )
         return self
