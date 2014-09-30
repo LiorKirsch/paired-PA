@@ -78,7 +78,7 @@ class multiClassPairedPA(baseMultiClassPA):
 #     @profile
     def fit(self, X, Y, track_every_n_steps = 0):
         # transforms the classes into indices
-        print( self.get_params() )
+#         print( self.get_params() )
         self.classes_, Y = np.unique(Y, return_inverse=True) 
         num_classes = len(self.classes_)
         num_samples,d = X.shape

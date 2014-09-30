@@ -30,8 +30,8 @@ class basePA(sklearn.base.BaseEstimator):
         
     def check_tracking(self,t,track_every_n_steps,w, w_mean):
         if (not track_every_n_steps == 0) and (t % track_every_n_steps == 1):
-            self.w_progress_.append(w)
-            self.w_progress_mean_.append(w_mean)
+            self.w_progress_.append( copy.copy(w) )
+            self.w_progress_mean_.append( copy.copy(w_mean) )
           
     def evaulate_tracking(self, evaluate_function, X_test, y_test):
         num_tracking_steps = len(self.w_progress_)
