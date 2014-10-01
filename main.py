@@ -17,26 +17,19 @@ import predictionMetrics
 import multiClassPaPa
 import pickle
 import datasets
+import figures
 
-def plot_tracking(results, tracking_step,file_name):
-    max_val = len(results) * tracking_step
-    steps = range(0,max_val, tracking_step)
-    fig = plt.figure()
-    plt.plot(steps, results, linestyle='-', marker='.')
-    plt.plot(steps, [   results[-1]] *len(results),'--')
-    plt.axis([0, max_val, 0, 1])
-    plt.yticks( list(plt.yticks()[0]) + [results[-1]])
-    pylab.savefig(file_name)
-    plt.close(fig)
     
-def showResults(best_estimator, X_test, y_test, metrics_to_test, results):
+def showResults(best_estimator, X_test, y_test, metrics_to_test, results, track_every_n_steps):
     
     print('\t%s  \t\t  (' %(clf.best_params_)),
     for metric_name, metric_to_use in metrics_to_test.iteritems():
         tracking_results, mean_tracking_results = best_estimator.evaulate_tracking(metric_to_use, X_test, y_test)
         
-        plot_tracking(tracking_results, track_every_n_steps, 'figures/%s/%s(%d).png' %(metric_name,algo['name'],i) )
-#        plot_tracking(mean_tracking_results, track_every_n_steps, 'figures/%s/%s(%d).mean.png' %(metric_name,algo['name'],i) )
+        figures.plot_tracking(tracking_results, track_every_n_steps, 'figures/%s/%s(%d).png' %(metric_name,algo['name'],i) )
+#        figures.plot_tracking(mean_tracking_results, track_every_n_steps, 'figures/%s/%s(%d).mean.png' %(metric_name,algo['name'],i) )
+
+        figures.plot_tracking(tracking_results, track_every_n_steps * best_estimator.samples_per_timepoint, 'figures/%s/num_samples_%s(%d).png' %(metric_name,algo['name'],i) )
         
         filename = 'results/%s_%s_%s.pickle' % ( metric_name,algo['name'],i )
         with open(filename, 'wb') as output:
@@ -52,16 +45,17 @@ def showResults(best_estimator, X_test, y_test, metrics_to_test, results):
 
 if __name__ == '__main__':
     
-    num_folds = 3
+    num_folds = 5
     metrics_to_test = {'AUC':predictionMetrics.oneVsAllAUC, 'ACC':predictionMetrics.accuracy, 'BalancedACC':predictionMetrics.balancedAccuracy}
     
     parms = { 'track_every_n_steps' :100, 'repeat_on_test': 40000,'n_jobs':-2}
     hyper_parms = {'C':[0.01, 0.1, 1,10], 'repeat' : [5000], 'seed' :[0] }
 
-#     parms = { 'track_every_n_steps' :20, 'repeat_on_test': 50,'n_jobs':1}
-#     hyper_parms = {'C':[10], 'repeat' : [50], 'seed' :[0] }
-    
-    algs = [{'name':'pairedPA1', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [1], 'balanced_weight' : [None]}.items() + hyper_parms.items() )},
+    parms = { 'track_every_n_steps' :20, 'repeat_on_test': 50,'n_jobs':1}
+    hyper_parms = {'C':[10], 'repeat' : [50], 'seed' :[0] }
+
+    algs = [{'name':'pairedPA1', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [1], 'balanced_weight' : [ 'samples' ]}.items() + hyper_parms.items() )},
+            {'name':'pairedPA1_single_negative', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'choose_single_negative':True, 'early_stopping' : [1], 'balanced_weight' : [ 'samples' ]}.items() + hyper_parms.items() )},
             #{'name':'pairedPA10', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [10], 'balanced_weight' : [None]}.items() + hyper_parms.items() ) },
             {'name':'aucPA', 'alg': multiClassPaPa.oneVsAllAucPA, 'parameters' : hyper_parms },
             {'name':'classicPA', 'alg': multiClassPaPa.oneVsAllClassicPA, 'parameters' : hyper_parms },
@@ -114,7 +108,7 @@ if __name__ == '__main__':
 #             with open('results/weights_%s_%d.pickle' % (algo['name'],i), 'wb') as handle:
 #                 pickle.dump(best_estimator, handle)
 
-            results[ algo['name'] ] = showResults(best_estimator, X_test, y_test,metrics_to_test, results[ algo['name'] ])
+            results[ algo['name'] ] = showResults(best_estimator, X_test, y_test,metrics_to_test, results[ algo['name'] ], track_every_n_steps)
             
         i = i +1
         

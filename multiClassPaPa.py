@@ -57,12 +57,14 @@ class oneVsAllClassifier(baseMultiClassPA):
         
 class oneVsAllClassicPA(oneVsAllClassifier):
     def fit(self, X, Y, **kwags):
+        self.samples_per_timepoint = 1
         binary_classifier = pairedPABinaryClassifiers.classicPA
         return self._fit(binary_classifier, X, Y, **kwags)
        
          
 class oneVsAllAucPA(oneVsAllClassifier):
     def fit(self, X, Y, **kwags):
+        self.samples_per_timepoint = 2
         binary_classifier = pairedPABinaryClassifiers.aucPA
         return self._fit(binary_classifier, X, Y, **kwags)
                   
@@ -70,9 +72,10 @@ class oneVsAllAucPA(oneVsAllClassifier):
     
 class multiClassPairedPA(baseMultiClassPA):
     
-    def __init__(self, C =1, repeat = 5000, seed =42, early_stopping = 10, balanced_weight = None):
+    def __init__(self, C =1, repeat = 5000, seed =42, early_stopping = 10, balanced_weight = None, choose_single_negative=False):
         self.early_stopping = early_stopping
         self.balanced_weight = balanced_weight
+        self.choose_single_negative = choose_single_negative 
         baseMultiClassPA.__init__(self, C =C, repeat = repeat, seed =seed)
     
 #     @profile
@@ -80,8 +83,15 @@ class multiClassPairedPA(baseMultiClassPA):
         # transforms the classes into indices
 #         print( self.get_params() )
         self.classes_, Y = np.unique(Y, return_inverse=True) 
+         
         num_classes = len(self.classes_)
         num_samples,d = X.shape
+        
+        if self.choose_single_negative:
+            self.samples_per_timepoint = 2
+        else:
+            self.samples_per_timepoint = num_classes
+            
         # divide X into the different classes
         try:
             X_norms_squared = X.multiply(X).sum(1) 
@@ -127,6 +137,15 @@ class multiClassPairedPA(baseMultiClassPA):
                 Y_at_time_t = -1 * np.ones( num_classes ) 
                 Y_at_time_t[j] = 1
                 
+                if self.choose_single_negative:
+                    negative_sample_index = j
+                    while negative_sample_index ==j:
+                        negative_sample_index = random.randrange( num_classes )
+                    
+                    small_subset_samples = [j,negative_sample_index]
+                    Y_at_time_t = Y_at_time_t[small_subset_samples]
+                    X_at_time_t = X_at_time_t[small_subset_samples,:]
+                        
                 classifier_score =  (X_at_time_t.dot( w[j].T )).flatten() 
                 classifier_score = np.multiply(Y_at_time_t ,classifier_score  )
                   

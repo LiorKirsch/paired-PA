@@ -6,6 +6,7 @@ Created on Sep 22, 2014
 from __future__ import division
 import numpy as np
 from pylab import *
+import predictionMetrics, pickle
 
 def showClassesPie(Y):
     num_samples = len(Y)
@@ -46,4 +47,40 @@ def drawPie(fracs, labels):
         
     show()
         
+def plot_tracking(results, tracking_step,file_name):
+    max_val = len(results) * tracking_step
+    steps = range(0,max_val, tracking_step)
+    fig = plt.figure()
+    plt.plot(steps, results, linestyle='-', marker='.')
+    plt.plot(steps, [   results[-1]] *len(results),'--')
+    plt.axis([0, max_val, 0, 1])
+    plt.yticks( list(plt.yticks()[0]) + [results[-1]])
+    savefig(file_name)
+    plt.close(fig)
+    
+def createFigureFromResults():
+    
+    num_folds = 5
+    algs = [{'name':'pairedPA1' ,'samples_at_each_step':20},
+            {'name':'pairedPA1_single_negative', 'samples_at_each_step':2},
+            #{'name':'pairedPA10' },
+            {'name':'aucPA' , 'samples_at_each_step':2},
+            {'name':'classicPA' ,'samples_at_each_step':1},
+           ]
+    
+    metrics_to_test = {'AUC':predictionMetrics.oneVsAllAUC, 'ACC':predictionMetrics.accuracy, 'BalancedACC':predictionMetrics.balancedAccuracy}
+
+    for i in range(num_folds):
+        for algo in algs:
+            print('===== %s =====' % algo['name'])
+            for metric in metrics_to_test.keys():
+                
+                filename = 'results/%s_%s_%s.pickle' % ( metric,algo['name'],i )
+                with open(filename, 'wb') as output:
+                    fileData = pickle.load(output)
+                tracking_results = fileData['tracking_results']
+                
+ 
+                
         
+                
