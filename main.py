@@ -2,7 +2,7 @@
 """
 Created on Mon Sep  8 10:49:14 2014
 
-@author: liorlocal
+@author: Lior Kirsch
 """
 
 from __future__ import division
@@ -22,7 +22,7 @@ def plot_tracking(results, tracking_step,file_name):
     max_val = len(results) * tracking_step
     steps = range(0,max_val, tracking_step)
     fig = plt.figure()
-    plt.plot(steps, results)
+    plt.plot(steps, results, linestyle='-', marker='.')
     plt.plot(steps, [   results[-1]] *len(results),'--')
     plt.axis([0, max_val, 0, 1])
     plt.yticks( list(plt.yticks()[0]) + [results[-1]])
@@ -34,11 +34,16 @@ def showResults(best_estimator, X_test, y_test, metrics_to_test, results):
     print('\t%s  \t\t  (' %(clf.best_params_)),
     for metric_name, metric_to_use in metrics_to_test.iteritems():
         tracking_results, mean_tracking_results = best_estimator.evaulate_tracking(metric_to_use, X_test, y_test)
-        plot_tracking(tracking_results, track_every_n_steps, 'figures/%s/%s(%d).png' %(metric_name,algo['name'],i) )
-        plot_tracking(mean_tracking_results, track_every_n_steps, 'figures/%s/%s(%d).mean.png' %(metric_name,algo['name'],i) )
         
+        plot_tracking(tracking_results, track_every_n_steps, 'figures/%s/%s(%d).png' %(metric_name,algo['name'],i) )
+#        plot_tracking(mean_tracking_results, track_every_n_steps, 'figures/%s/%s(%d).mean.png' %(metric_name,algo['name'],i) )
+        
+        filename = 'results/%s_%s_%s.pickle' % ( metric_name,algo['name'],i )
+        with open(filename, 'wb') as output:
+            pickle.dump({'tracking_results': tracking_results, 'mean_tracking_results': mean_tracking_results}, output, pickle.HIGHEST_PROTOCOL)
+            
         metric_score = metric_to_use(best_estimator, X_test, y_test)
-        print(metric_score),
+        print(' %s:%g ' % (metric_name,metric_score)),
         results[ metric_name ].append(metric_score)
         
     
@@ -57,7 +62,7 @@ if __name__ == '__main__':
 #     hyper_parms = {'C':[10], 'repeat' : [50], 'seed' :[0] }
     
     algs = [{'name':'pairedPA1', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [1], 'balanced_weight' : [None]}.items() + hyper_parms.items() )},
-            {'name':'pairedPA10', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [10], 'balanced_weight' : [None]}.items() + hyper_parms.items() ) },
+            #{'name':'pairedPA10', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [10], 'balanced_weight' : [None]}.items() + hyper_parms.items() ) },
             {'name':'aucPA', 'alg': multiClassPaPa.oneVsAllAucPA, 'parameters' : hyper_parms },
             {'name':'classicPA', 'alg': multiClassPaPa.oneVsAllClassicPA, 'parameters' : hyper_parms },
            ]
