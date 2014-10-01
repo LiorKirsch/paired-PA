@@ -51,11 +51,11 @@ if __name__ == '__main__':
     parms = { 'track_every_n_steps' :100, 'repeat_on_test': 40000,'n_jobs':-2}
     hyper_parms = {'C':[0.01, 0.1, 1,10], 'repeat' : [5000], 'seed' :[0] }
 
-    parms = { 'track_every_n_steps' :20, 'repeat_on_test': 50,'n_jobs':1}
-    hyper_parms = {'C':[10], 'repeat' : [50], 'seed' :[0] }
+#    parms = { 'track_every_n_steps' :20, 'repeat_on_test': 50,'n_jobs':1}
+#    hyper_parms = {'C':[10], 'repeat' : [50], 'seed' :[0] }
 
-    algs = [{'name':'pairedPA1', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [1], 'balanced_weight' : [ 'samples' ]}.items() + hyper_parms.items() )},
-            {'name':'pairedPA1_single_negative', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'choose_single_negative':True, 'early_stopping' : [1], 'balanced_weight' : [ 'samples' ]}.items() + hyper_parms.items() )},
+    algs = [{'name':'pairedPA1', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [1], 'balanced_weight' : [ None, 'samples' ]}.items() + hyper_parms.items() )},
+            {'name':'pairedPA1_single_negative', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'choose_single_negative':[True], 'early_stopping' : [1], 'balanced_weight' : [ None, 'samples' ]}.items() + hyper_parms.items() )},
             #{'name':'pairedPA10', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [10], 'balanced_weight' : [None]}.items() + hyper_parms.items() ) },
             {'name':'aucPA', 'alg': multiClassPaPa.oneVsAllAucPA, 'parameters' : hyper_parms },
             {'name':'classicPA', 'alg': multiClassPaPa.oneVsAllClassicPA, 'parameters' : hyper_parms },
