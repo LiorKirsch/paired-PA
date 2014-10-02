@@ -58,29 +58,66 @@ def plot_tracking(results, tracking_step,file_name):
     savefig(file_name)
     plt.close(fig)
     
-def createFigureFromResults():
+def createFigureFromResults(algs,x_axis_label):
     
-    num_folds = 5
-    algs = [{'name':'pairedPA1' ,'samples_at_each_step':20},
-            {'name':'pairedPA1_single_negative', 'samples_at_each_step':2},
-            #{'name':'pairedPA10' },
-            {'name':'aucPA' , 'samples_at_each_step':2},
-            {'name':'classicPA' ,'samples_at_each_step':1},
-           ]
+    num_folds = 3
     
+    
+    tracking_step = 100
     metrics_to_test = {'AUC':predictionMetrics.oneVsAllAUC, 'ACC':predictionMetrics.accuracy, 'BalancedACC':predictionMetrics.balancedAccuracy}
 
     for i in range(num_folds):
-        for algo in algs:
-            print('===== %s =====' % algo['name'])
-            for metric in metrics_to_test.keys():
-                
-                filename = 'results/%s_%s_%s.pickle' % ( metric,algo['name'],i )
-                with open(filename, 'wb') as output:
+        for metric in metrics_to_test.keys():
+            fig = plt.figure()
+    
+            for algo in algs:        
+                filename = 'results/%s_%s_%d.pickle' % ( metric,algo['name'],i )
+                with open(filename, 'r') as output:
                     fileData = pickle.load(output)
                 tracking_results = fileData['tracking_results']
                 
- 
+                num_samples_steps = tracking_step * algo['samples_at_each_step']
+                max_val = len(tracking_results) * num_samples_steps
+                steps = range(0,max_val, num_samples_steps)
                 
+                plt.plot(steps, tracking_results, linestyle='-', marker='.', color= algo['plot_color'], label=algo['name'])
+                plt.axis([0, max_val, 0, 1])
+            
+            legend(loc='lower right')
+            plt.xlabel(x_axis_label)
+            plt.ylabel(metric)
+            file_name = 'figures/%s_%s%d.png' % (x_axis_label,metric, i)
+            savefig(file_name)
+            plt.close(fig)
+    
+            
+            
+            
+
+if __name__ == '__main__':   
+    algs = [{'name':'pairedPA1' ,'samples_at_each_step':20,'plot_color':'c'},
+            {'name':'pairedPA1_single_negative', 'samples_at_each_step':2,'plot_color':'b'},
+            #{'name':'pairedPA10' },
+            {'name':'aucPA' , 'samples_at_each_step':2,'plot_color':'g'},
+            {'name':'classicPA' ,'samples_at_each_step':1,'plot_color':'y'},
+           ] 
+    createFigureFromResults(algs, 'sample seen')    
+                
+    
+    
+    algs = [{'name':'pairedPA1' ,'samples_at_each_step':1,'plot_color':'c'},
+            {'name':'pairedPA1_single_negative', 'samples_at_each_step':1,'plot_color':'b'},
+            #{'name':'pairedPA10' },
+            {'name':'aucPA' , 'samples_at_each_step':1,'plot_color':'g'},
+            {'name':'classicPA' ,'samples_at_each_step':1,'plot_color':'y'},
+           ] 
+    createFigureFromResults(algs, 'time steps')    
         
-                
+    
+    algs = [{'name':'pairedPA1' ,'samples_at_each_step':20,'plot_color':'c'},
+            {'name':'pairedPA1_single_negative', 'samples_at_each_step':2,'plot_color':'b'},
+            #{'name':'pairedPA10' },
+            {'name':'aucPA' , 'samples_at_each_step':1,'plot_color':'g'},
+            {'name':'classicPA' ,'samples_at_each_step':1,'plot_color':'y'},
+           ] 
+    createFigureFromResults(algs, 'updates to w')                

@@ -129,7 +129,7 @@ class multiClassPairedPA(baseMultiClassPA):
                 random_index = random.randint(0, X_sizes[j] -1)
                 example_ind[j] = current_X_classes_indices[random_index]
                 
-            X_at_time_t = X[example_ind,:]
+            X_at_time_t_all_classes = X[example_ind,:]
             X_norms_squared_time_t = X_norms_squared[example_ind]
 
             # Train a one vs all classifier for each class    
@@ -144,7 +144,9 @@ class multiClassPairedPA(baseMultiClassPA):
                     
                     small_subset_samples = [j,negative_sample_index]
                     Y_at_time_t = Y_at_time_t[small_subset_samples]
-                    X_at_time_t = X_at_time_t[small_subset_samples,:]
+                    X_at_time_t = X_at_time_t_all_classes[small_subset_samples,:]
+                else:
+                    X_at_time_t = X_at_time_t_all_classes
                         
                 classifier_score =  (X_at_time_t.dot( w[j].T )).flatten() 
                 classifier_score = np.multiply(Y_at_time_t ,classifier_score  )
