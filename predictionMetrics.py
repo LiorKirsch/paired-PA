@@ -40,3 +40,12 @@ def oneVsAllAUC(estimator, X, y_true):
         auc_in_class[j] = metrics.roc_auc_score( current_labels, current_classifier_descision )
     
     return  np.mean(auc_in_class)
+
+
+def twoClassAUC(estimator, X, y_true):
+    num_classes = len(estimator.classes_)
+    num_samples,d = X.shape
+    y_descisions = estimator.decision_function(X)
+    auc_in_class = metrics.roc_auc_score( y_true, y_descisions )
+    
+    return  auc_in_class

@@ -109,8 +109,17 @@ class basePA(sklearn.base.BaseEstimator):
         
             i = 0    
             for i in range(0,m):
-                current_X = X.getrow(i)
-                X_nonzeros = current_X.nonzero()[1] 
+#                 # for sparse
+#                 current_X = X.getrow(i)
+#                 X_nonzeros = current_X.nonzero()[1] 
+#                 current_X_data = current_X.data
+                
+                # not sparse
+                current_X = X[i,:]
+                X_nonzeros = np.ones(w.shape, dtype=bool) 
+                current_X_data = current_X
+
+                
                 # predict
                 prediction = current_X.dot(w.T)
 #                 prediction = prediction.todense()
@@ -123,14 +132,14 @@ class basePA(sklearn.base.BaseEstimator):
                     M = M + 1
                     # update w
                     if X_norm is None:
-                        current_x_norm = (current_X.data**2).sum()
+                        current_x_norm = (current_X_data**2).sum()
                     else:
                         current_x_norm = X_norm[i]
                           
                     tau = min(samples_C[i]-alpha[i], max([-alpha[i], loss/ current_x_norm]))
                     alpha[i] = alpha[i] + tau 
 #                     w1 = w + tau*Y[i]* current_X
-                    w[ X_nonzeros ] +=  tau*Y[i]*current_X.data
+                    w[ X_nonzeros ] +=  tau*Y[i]*current_X_data
                     
 #                     flat_w = fast_sparse.update_w(X_nonzeros,current_X.data, flat_w,tau, Y[i])
                     
@@ -142,6 +151,7 @@ class basePA(sklearn.base.BaseEstimator):
 
 class classicPA(basePA):
     def fit(self, X, Y, track_every_n_steps = 0):
+        self.samples_per_timepoint = 1
         self.classes_, Y = np.unique(Y, return_inverse=True) # transforms the classes into indices
         Y = 2*Y -1  # transform  (0,1) to (-1,1)
         
@@ -191,7 +201,7 @@ class classicPA(basePA):
 class aucPA(basePA):
 #     @profile
     def fit(self, X, Y, track_every_n_steps = 0):
-        
+        self.samples_per_timepoint = 2
         self.classes_, Y = np.unique(Y, return_inverse=True) # transforms the classes into indices
         Y = 2*Y -1  # transform  (0,1) to (-1,1)
         
@@ -247,9 +257,10 @@ class pairedPA(basePA):
     
     def __init__(self, C =1, repeat = 5000, seed =42, early_stopping = 10):
         self.early_stopping = early_stopping
-        basePA.__init__(self, C =1, repeat = 5000, seed =42)
+        basePA.__init__(self, C =C, repeat = repeat, seed =seed)
         
-    def fit(self, X, Y):
+    def fit(self, X, Y, track_every_n_steps = 0):
+        self.samples_per_timepoint = 2
         self.classes_, Y = np.unique(Y, return_inverse=True) # transforms the classes into indices
         Y = 2*Y -1  # transform  (0,1) to (-1,1)
         
@@ -262,7 +273,8 @@ class pairedPA(basePA):
         n_neg, d = X_neg.shape;  # updated number of examples
         
         # weight vector
-        w = np.zeros((d,));
+        w = np.zeros((1,d))
+        w_mean = np.zeros((1,d))
         N = 0; # counts mistakes
         P = 0; # counts mistakes
     
@@ -286,5 +298,9 @@ class pairedPA(basePA):
                 Y_pair = np.array( (1,-1) )
                 w = self.dca_with_memory(X_pair, Y_pair, self.C / 2.0, w ,early_stopping = self.early_stopping)
                 
+            w_mean = (w_mean * (t) + w ) / (t+1)
+            self.check_tracking(t,track_every_n_steps,w,w_mean)
+                
         self.w_ = w
+        self.w_mean_ = w_mean
         return self

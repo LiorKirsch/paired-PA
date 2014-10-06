@@ -1,15 +1,16 @@
 '''
 Created on Sep 30, 2014
 
-@author: liorlocal
+@author: Lior Kirsch
 '''
 
+from __future__ import division
 from sklearn import svm, grid_search, datasets, metrics, linear_model
 import numpy as np
 import scipy.io
 import scipy.sparse as sparse
 
-def loadDataSet(dataset_name, appendOnesColumn=False):
+def loadDataSet(dataset_name, appendOnesColumn=False, seed = 0):
     
     if dataset_name == "iris":
         '''
@@ -64,6 +65,74 @@ def loadDataSet(dataset_name, appendOnesColumn=False):
             ones_column = sparse.csr_matrix( np.ones( (X_all.shape[0] ,1) ) )
             X_all = sparse.hstack( [X_all,ones_column] )
     
+    elif dataset_name == "synthetic":
+        X_all, Y_all = generate_data(seed = seed)
+        
     samples_classes = np.unique(Y_all) 
     print('loaded %s: %d sample, %d features, %d classes' % (dataset_name, X_all.shape[0], X_all.shape[1] , len(samples_classes) ))
     return X_all , Y_all
+
+
+
+
+
+
+def generate_data(seed, m = 1000000, d=2, positive_neg_ratio = 0.00005, flip_percentage = 0, gaussian_noise_std = 0.7):
+    ''' 
+    generate data by choosing a classification vector and then generate random samples 
+    and apply w to these samples to get the correct label.
+    To add noise: 
+        the labels of some of the samples are flipped.
+        a gaussian noise is added to the features.
+    The percent of positive sample can be controlled to create an unbalanced dataset
+    '''   
+    
+    np.random.seed(seed)
+    w_opt = np.random.rand(1,d)  #  np.array([1.0,2.0])
+    # random numbers in [0,1]
+    X = np.random.rand(m,d)  
+    # convert to numbers in [-1,1]
+    X = 2.0*X - 1.0
+    # set the label
+    Y  = np.zeros((m,))
+ 
+    indices_to_delete = list()
+    for i in range(m):
+        Y[i] = np.sign(np.dot(w_opt, X[i,:]))
+#        # set margin
+#        if Y[i]*np.dot(w_opt, X[i,:]) < 0.5:
+#            indices_to_delete.append(i)
+#     
+    X = np.delete(X, indices_to_delete, 0)
+    Y = np.delete(Y, indices_to_delete, 0)
+    m, d = X.shape;  # updated number of examples
+    
+    # add flip noise
+    if flip_percentage > 0.0:
+        flip_every_n_steps = round(flip_percentage * m)
+        for i in range(m):
+            if i % flip_every_n_steps == 0:
+                Y[i] = -Y[i]
+    
+    # add gaussian noise
+    X = X + np.random.normal(0, gaussian_noise_std, X.shape)
+    
+    
+    # make an unbalanced dataset by removing samples from the positive set
+    pos_ind = Y > 0
+    num_pos = pos_ind.sum()
+    num_neg = m - num_pos
+    
+    percent_pos_to_remove = 1 - positive_neg_ratio 
+    remove_ind = np.random.rand(m) < percent_pos_to_remove
+    to_remove = remove_ind & pos_ind 
+    X = X[~to_remove,:]
+    Y = Y[~to_remove]
+    
+    pos_neg_ratio = float( (Y > 0).sum()) / len(Y) 
+    new_num_pos = (Y > 0).sum()
+    print('positives: %d , negatives: %d' %(new_num_pos, num_neg ))
+    print( 'positive ratio in data - %f' % pos_neg_ratio )
+    
+    return (X,Y)
+

@@ -14,7 +14,7 @@ from sklearn.cross_validation import StratifiedKFold
 from sklearn import grid_search
 
 import predictionMetrics
-import multiClassPaPa
+import multiClassPaPa, pairedPABinaryClassifiers
 import pickle
 import datasets
 import figures
@@ -48,27 +48,35 @@ if __name__ == '__main__':
     num_folds = 5
     metrics_to_test = {'AUC':predictionMetrics.oneVsAllAUC, 'ACC':predictionMetrics.accuracy, 'BalancedACC':predictionMetrics.balancedAccuracy}
     
-    parms = { 'track_every_n_steps' :100, 'repeat_on_test': 40000,'n_jobs':-2}
+    
+    parms = { 'track_every_n_steps' :100, 'repeat_on_test': 40000,'n_jobs':1}
     hyper_parms = {'C':[0.01, 0.1, 1,10], 'repeat' : [5000], 'seed' :[0] }
 
-#    parms = { 'track_every_n_steps' :20, 'repeat_on_test': 50,'n_jobs':1}
-#    hyper_parms = {'C':[10], 'repeat' : [50], 'seed' :[0] }
+#     parms = { 'track_every_n_steps' :20, 'repeat_on_test': 50,'n_jobs':1}
+#     hyper_parms = {'C':[10], 'repeat' : [50], 'seed' :[0] }
 
-    algs = [{'name':'pairedPA1_single_negative', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'choose_single_negative':[True], 'early_stopping' : [1], 'balanced_weight' : [ None, 'samples' ]}.items() + hyper_parms.items() )},
-        {'name':'pairedPA1', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [1], 'balanced_weight' : [ None, 'samples' ]}.items() + hyper_parms.items() )},
-            #{'name':'pairedPA10', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [10], 'balanced_weight' : [None]}.items() + hyper_parms.items() ) },
-            {'name':'aucPA', 'alg': multiClassPaPa.oneVsAllAucPA, 'parameters' : hyper_parms },
-            {'name':'classicPA', 'alg': multiClassPaPa.oneVsAllClassicPA, 'parameters' : hyper_parms },
-           ]
+#     algs = [{'name':'pairedPA1_single_negative', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'choose_single_negative':[True], 'early_stopping' : [1], 'balanced_weight' : [ None, 'samples' ]}.items() + hyper_parms.items() )},
+#         {'name':'pairedPA1', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [1], 'balanced_weight' : [ None, 'samples' ]}.items() + hyper_parms.items() )},
+#             #{'name':'pairedPA10', 'alg': multiClassPaPa.multiClassPairedPA, 'parameters' : dict( {'early_stopping' : [10], 'balanced_weight' : [None]}.items() + hyper_parms.items() ) },
+#             {'name':'aucPA', 'alg': multiClassPaPa.oneVsAllAucPA, 'parameters' : hyper_parms },
+#             {'name':'classicPA', 'alg': multiClassPaPa.oneVsAllClassicPA, 'parameters' : hyper_parms },
+#            ]
 
-#     algs = [{'name':'pairedPA1', 'alg': pairedPABinaryClassifiers.pairedPA, 'parameters' : dict( {'early_stopping' : [1]}.items() + pa_alg_parms.items() ) },
-#         {'name':'pairedPA10', 'alg': pairedPABinaryClassifiers.pairedPA, 'parameters' : dict( {'early_stopping' : [10]}.items() + pa_alg_parms.items() ) },
-#         {'name':'classicPA', 'alg': pairedPABinaryClassifiers.classicPA, 'parameters' : pa_alg_parms },
-#         {'name':'aucPA', 'alg': pairedPABinaryClassifiers.aucPA, 'parameters' : pa_alg_parms },
-#         ]
+    algs = [{'name':'pairedPA1', 'alg': pairedPABinaryClassifiers.pairedPA, 'parameters' : dict( {'early_stopping' : [1]}.items() + hyper_parms.items() ) },
+        {'name':'pairedPA10', 'alg': pairedPABinaryClassifiers.pairedPA, 'parameters' : dict( {'early_stopping' : [10]}.items() + hyper_parms.items() ) },
+        {'name':'classicPA', 'alg': pairedPABinaryClassifiers.classicPA, 'parameters' : hyper_parms },
+        {'name':'aucPA', 'alg': pairedPABinaryClassifiers.aucPA, 'parameters' : hyper_parms },
+        ]
+    metrics_to_test = {'AUC':predictionMetrics.twoClassAUC, 'ACC':predictionMetrics.accuracy, 'BalancedACC':predictionMetrics.balancedAccuracy}
     
     
-    X_all, Y_all = datasets.loadDataSet("20_news_groups", appendOnesColumn=False)
+    X_all, Y_all = datasets.loadDataSet("20_news_groups", appendOnesColumn=False, seed=0)
+    
+    subset = (-1 < Y_all) & (Y_all < 16)
+    X_all = X_all[subset,:]
+    Y_all = Y_all[subset]
+    
+    figures.showCorrelationBetweenClasses(X_all,Y_all)
     skf = StratifiedKFold(Y_all, num_folds)
     
     results_balanced = {}
@@ -89,6 +97,7 @@ if __name__ == '__main__':
         X_test = X_all[test,:]
         y_test = Y_all[test]
 
+        print('positives: %d    negatives: %d' %( (y_test > 0).sum(),  (y_test < 0).sum() ))
         validationCV = StratifiedKFold(y_train, num_folds)
         
         for algo in algs:
