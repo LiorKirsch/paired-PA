@@ -117,6 +117,7 @@ def showCorrelationBetweenClasses(X,Y):
     
     fig = plt.figure()
     R = corrcoef(data)
+    b = data.dot(data.T)
     pcolor(R)
     colorbar()
     yticks(arange(0.5,num_classes + 0.5),range(num_classes))

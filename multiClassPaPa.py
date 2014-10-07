@@ -57,6 +57,7 @@ class oneVsAllClassifier(baseMultiClassPA):
         
 class oneVsAllClassicPA(oneVsAllClassifier):
     def fit(self, X, Y, **kwags):
+        self.samples_per_timepoint = 1
         binary_classifier = pairedPABinaryClassifiers.classicPA
         return self._fit(binary_classifier, X, Y, **kwags)
        

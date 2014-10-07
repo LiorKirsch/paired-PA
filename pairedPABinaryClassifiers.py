@@ -109,15 +109,15 @@ class basePA(sklearn.base.BaseEstimator):
         
             i = 0    
             for i in range(0,m):
-#                 # for sparse
-#                 current_X = X.getrow(i)
-#                 X_nonzeros = current_X.nonzero()[1] 
-#                 current_X_data = current_X.data
+                # for sparse
+                current_X = X.getrow(i)
+                X_nonzeros = current_X.nonzero()[1] 
+                current_X_data = current_X.data
                 
-                # not sparse
-                current_X = X[i,:]
-                X_nonzeros = np.ones(w.shape, dtype=bool) 
-                current_X_data = current_X
+#                 # not sparse
+#                 current_X = X[i,:]
+#                 X_nonzeros = np.ones(w.shape, dtype=bool) 
+#                 current_X_data = current_X
 
                 
                 # predict
